@@ -1,0 +1,137 @@
+<title>student tracker</title>
+<link rel="stylesheet" href="styles.css">
+<body>
+<div class="appcontainer">
+  <div class="headerrow">
+    <h3 style="margin:0">student tracker</h3>
+    <a href="admin.html" class="navlink">teacher admin &rarr;</a>
+  </div>
+
+  <div id="authview" class="darkbox">
+    <div class="authtabs">
+      <button id="tabloginbtn" onclick="switchauthmode('login')" class="authtabbtn authtabactive">log in</button>
+      <button id="tabsignupbtn" onclick="switchauthmode('signup')" class="authtabbtn">sign up</button>
+    </div>
+
+    <h4 id="authheading" style="margin-top:0">student login</h4>
+    <p id="authsubtext" class="subtext">enter your name, batch, and pin to log in to your account.</p>
+
+    <label class="inputlabel">student name</label>
+    <input id="pupilname" class="inputbox" placeholder="e.g. Pahal Desai">
+
+    <label class="inputlabel">batch</label>
+    <input id="pupilbatch" class="inputbox" placeholder="e.g. 46-AJ201MA">
+
+    <label id="pinlabel" class="inputlabel">secret pin</label>
+    <input id="pupilpin" type="password" class="inputbox" placeholder="e.g. 1234">
+
+    <button id="authsubmitbtn" onclick="handleauthsubmit()" class="btn">log in</button>
+    <div id="authswitchbox" class="authswitchtext">
+      don't have an account? <a href="javascript:void(0)" onclick="switchauthmode('signup')" class="navlink">sign up here</a>
+    </div>
+    <div id="authstatus" class="statusmsg"></div>
+  </div>
+
+  <div id="subjectsview" class="hidden">
+    <div class="darkbox" style="padding:12px 18px">
+      <div class="headerrow" style="margin:0">
+        <div>
+          <b id="profilenamedisplay">student</b>
+          <span id="profilebatchdisplay" class="subtext" style="margin-left:8px">batch</span>
+        </div>
+        <button onclick="dologout()" class="btn" style="padding:4px 10px;font-size:12px">switch account</button>
+      </div>
+    </div>
+
+    <div class="darkbox">
+      <div id="emptysubjectbox">
+        <p class="subtext">no subjects added yet. get started by adding your first subject.</p>
+        <button onclick="opensubjectinput()" class="bigactionbtn">+ add a subject</button>
+      </div>
+
+      <div id="activesubjectbox" class="hidden">
+        <div class="headerrow" style="margin-bottom:6px">
+          <h4 style="margin:0">my subjects</h4>
+          <button onclick="opensubjectinput()" class="btn" style="padding:4px 10px;font-size:12px">+ add subject</button>
+        </div>
+        <input id="subjectsearch" oninput="filtersubjects()" class="searchbar" placeholder="search subjects...">
+        <div id="subjectcards" class="cardgrid"></div>
+      </div>
+
+      <div id="newsubjectform" class="formcard hidden">
+        <label class="inputlabel">subject name</label>
+        <input id="newsubjectname" class="inputbox" placeholder="e.g. Physics, Chemistry, Maths, Biology">
+        <div style="display:flex;gap:8px">
+          <button onclick="addnewsubject()" class="savebtn">save subject</button>
+          <button onclick="cancelsubjectinput()" class="btn">cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chaptersview" class="hidden">
+    <div class="darkbox">
+      <button onclick="backtosubjectsview()" class="backbtn">&larr; back to subjects</button>
+      <div class="headerrow" style="margin-bottom:6px">
+        <div>
+          <span class="subtext" style="display:block;margin:0">subject</span>
+          <h3 id="currentsubjecttitle" style="margin:2px 0 0 0">subject name</h3>
+        </div>
+        <button id="addchapbtn" onclick="openchapterinput()" class="btn" style="padding:4px 10px;font-size:12px">+ add chapter</button>
+      </div>
+
+      <div id="emptychapterbox">
+        <p class="subtext">no chapters added for this subject yet.</p>
+        <button onclick="openchapterinput()" class="bigactionbtn">+ add a chapter</button>
+      </div>
+
+      <div id="activechapterbox" class="hidden">
+        <input id="chaptersearch" oninput="filterchapters()" class="searchbar" placeholder="search chapters...">
+        <div id="chaptercards" class="cardgrid"></div>
+      </div>
+
+      <div id="newchapterform" class="formcard hidden">
+        <label class="inputlabel">chapter name</label>
+        <input id="newchaptername" class="inputbox" placeholder="e.g. Kinematics, Thermodynamics">
+        <div style="display:flex;gap:8px">
+          <button onclick="addnewchapter()" class="savebtn">add chapter</button>
+          <button onclick="cancelchapterinput()" class="btn">cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="progressview" class="hidden">
+    <div class="darkbox">
+      <button onclick="backtochaptersview()" class="backbtn">&larr; back to chapters</button>
+      <div class="headerrow">
+        <div>
+          <span id="progresstopiclabel" class="subtext" style="display:block;margin:0">subject &gt; chapter</span>
+          <h3 id="progresschaptertitle" style="margin:2px 0 0 0">chapter name</h3>
+        </div>
+        <button onclick="wipecurrentchapter()" class="delbtn">delete chapter</button>
+      </div>
+
+      <div style="margin-top:14px">
+        <label class="inputlabel">dpp progress</label>
+        <input id="dppinput" class="inputbox" placeholder="e.g. dpp 1-5 completed / 15 of 20">
+
+        <label class="inputlabel">prabal (jee main) progress</label>
+        <input id="prabalinput" class="inputbox" placeholder="e.g. 25 of 30 questions done">
+
+        <label class="inputlabel">parikshit (jee adv) progress</label>
+        <input id="parikshitinput" class="inputbox" placeholder="e.g. level 1 finished">
+
+        <label class="inputlabel">pyqs progress</label>
+        <input id="pyqinput" class="inputbox" placeholder="e.g. 2019-2024 solved">
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+          <button onclick="savechapterprogress()" class="savebtn">save progress</button>
+          <span id="progressstatus" class="statusmsg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
