@@ -873,4 +873,288 @@ body {
   to { opacity: 1; }
 }
 
+/* ==========================================================================
+   Teacher Bar & Admin Hierarchy Enhancements
+   ========================================================================== */
+.teacherbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #181818;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.teacherinfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teachername {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.teachersubjectbadge {
+  background: #153322;
+  color: #56d364;
+  border: 1px solid #238636;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.teacheractions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionpillbtn {
+  background: #1f3a5f;
+  color: #ffffff;
+  border: 1px solid #2f5485;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionpillbtn:hover {
+  background: #274878;
+  border-color: #4173b2;
+}
+
+.actionpillbtn:active {
+  transform: scale(0.96);
+}
+
+.actionpillbtn-secondary {
+  background: #252525;
+  color: #dddddd;
+  border: 1px solid #3c3c3c;
+}
+
+.actionpillbtn-secondary:hover {
+  background: #323232;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+/* Modal Overlay & Container */
+.modaloverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  padding: 16px;
+  animation: fadeIn 0.18s ease;
+}
+
+.modalbox {
+  background: #181818;
+  border: 1px solid #333333;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+  animation: modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.modalheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #1b1b1b;
+}
+
+.modalbody {
+  padding: 18px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modalfooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid #2a2a2a;
+  background: #141414;
+}
+
+.modalclose {
+  background: transparent;
+  color: #888888;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.modalclose:hover {
+  color: #ffffff;
+  background: #2a2a2a;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Target Selector Segmented Control */
+.targetselector {
+  display: flex;
+  background: #222222;
+  border: 1px solid #383838;
+  border-radius: 6px;
+  padding: 3px;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.targetbtn {
+  flex: 1;
+  background: transparent;
+  color: #999999;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+  font-family: inherit;
+}
+
+.targetbtn:hover {
+  color: #ffffff;
+}
+
+.targetbtn.active {
+  background: #1f3a5f;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Task Item Cards */
+.taskslist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.taskcard {
+  background: #202020;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+
+.taskcard:hover {
+  border-color: #4a4a4a;
+}
+
+.taskcardheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.tasktitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.taskbadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tasktargetbadge {
+  background: #1f3a5f;
+  color: #79b8ff;
+  border: 1px solid #2f5485;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.taskduebadge {
+  background: #3a2208;
+  color: #f0883e;
+  border: 1px solid #734213;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.taskauthorbadge {
+  background: #252525;
+  color: #aaaaaa;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.taskdesc {
+  font-size: 13px;
+  color: #cccccc;
+  line-height: 1.5;
+  margin: 6px 0 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
 

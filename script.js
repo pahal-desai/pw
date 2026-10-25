@@ -3,6 +3,7 @@ const workerbase = "https://peedabloo.desaipahal64.workers.dev"
 let authmode = "login"
 let activestudent = null
 let recordsdata = []
+let studenttasks = []
 let activesubject = ""
 let activechapter = ""
 let currentphotos = {
@@ -105,10 +106,12 @@ async function handleauthsubmit() {
         pin: pininput
       }
       recordsdata = logintxt.records || []
+      studenttasks = logintxt.tasks || []
 
       getnode("profilenamedisplay").innerText = activestudent.name
       getnode("profilebatchdisplay").innerText = "(" + activestudent.batch + ")"
       getnode("authview").classList.add("hidden")
+      renderstudenttasks()
       showsubjectspage()
     } else {
       noticemsg.innerText = logintxt.error || "login failed"
@@ -121,10 +124,12 @@ async function handleauthsubmit() {
 function dologout() {
   activestudent = null
   recordsdata = []
+  studenttasks = []
   activesubject = ""
   activechapter = ""
   currentphotos = { dpp: "", prabal: "", parikshit: "", pyqs: "" }
   getnode("pupilpin").value = ""
+  renderstudenttasks()
   getnode("subjectsview").classList.add("hidden")
   getnode("chaptersview").classList.add("hidden")
   getnode("progressview").classList.add("hidden")
@@ -145,6 +150,8 @@ async function syncstudentdata() {
     let jsonres = await fetchres.json()
     if (jsonres.success) {
       recordsdata = jsonres.records || []
+      studenttasks = jsonres.tasks || []
+      renderstudenttasks()
       return true
     }
     return false
@@ -160,7 +167,49 @@ function showsubjectspage() {
   getnode("newsubjectform").classList.add("hidden")
   getnode("subjectsearch").value = ""
 
+  renderstudenttasks()
   filtersubjects()
+}
+
+function renderstudenttasks() {
+  let tasksbox = getnode("studenttasksbox")
+  let taskslistnode = getnode("studenttaskslist")
+  let countlabel = getnode("studenttaskcount")
+
+  if (!tasksbox || !taskslistnode) return
+
+  if (!studenttasks || studenttasks.length === 0) {
+    tasksbox.classList.add("hidden")
+    return
+  }
+
+  tasksbox.classList.remove("hidden")
+  countlabel.innerText = studenttasks.length + (studenttasks.length === 1 ? " task" : " tasks")
+
+  let html = ""
+  for (let t of studenttasks) {
+    let targetlabel = t.targettype === "student"
+      ? "👤 Assigned to you personally"
+      : "👥 Assigned to your batch (" + t.targetbatch + ")"
+
+    let duebadge = t.duedate ? "<span class='taskduebadge'>⏰ Due: " + t.duedate + "</span>" : ""
+    let authorbadge = "<span class='taskauthorbadge'>👨‍🏫 " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
+
+    html += `
+      <div class="taskcard">
+        <div class="taskcardheader">
+          <h4 class="tasktitle">${t.tasktitle}</h4>
+        </div>
+        <div class="taskbadges">
+          <span class="tasktargetbadge">${targetlabel}</span>
+          ${duebadge}
+          ${authorbadge}
+        </div>
+        ${t.taskdesc ? `<div class="taskdesc">${t.taskdesc}</div>` : ""}
+      </div>
+    `
+  }
+  taskslistnode.innerHTML = html
 }
 
 function filtersubjects() {

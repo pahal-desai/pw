@@ -96,10 +96,28 @@ alter table studentprogress add column if not exists pyqsphoto text default '';
 
 ---
 
-## 6. teacher admin gui
-1. open `admin.html` and unlock with admin password (`topsecret`).
-2. **students directory**: shows every registered student with total subjects & chapters count.
-3. **delete student account**: click the delete button beside any student name in the directory or on their profile header to delete their account and all associated progress.
-4. **subjects level**: clicking a student shows their subjects and chapter counts with search.
-5. **chapters level**: clicking a subject shows all chapters in that subject with search.
-6. **progress level**: clicking a chapter displays progress cards for dpp, prabal, parikshit, and pyqs.
+## 6. teacher admin portal & task assignment
+1. open `admin.html`:
+   - **teacher login / sign up**: teachers can log in or sign up just like students by providing:
+     - **teacher name**
+     - **subject taught** (instead of batch)
+     - **secret pin / password**
+2. **batches directory (batch-first UI)**:
+   - teachers see **batch names** instead of student names first.
+   - search bar allows instant filtering by batch name.
+   - each batch card shows enrolled student count and an **assign task** button.
+   - clicking a batch card opens the students inside that batch.
+3. **batch students view**:
+   - shows all students in the selected batch.
+   - back button `← all batches`.
+   - each student has an individual **task** button and a **delete** button.
+   - deleting a student account permanently wipes the student and displays the 4-second Thor ban hammer GIF animation overlay.
+4. **task assignment**:
+   - teachers can assign tasks to:
+     - **entire batch** (delivered to all students in that batch)
+     - **individual student** (delivered only to that selected student)
+   - tasks specify title, optional instructions, and optional due date/time.
+   - teachers can click **view tasks** to see and delete active assignments.
+5. **student dashboard**:
+   - students automatically see active teacher-assigned tasks for their batch or individual name on their dashboard.
+

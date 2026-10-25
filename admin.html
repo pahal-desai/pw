@@ -13,44 +13,98 @@
 <body>
   <div class="appcontainer">
     <div class="headerrow">
-      <h3 style="margin:0">teacher admin portal</h3><img src="https://media.tenor.com/Pkz68vuQmikAAAAi/rock.gif"
-        height="50px" width="50px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h3 style="margin:0">Teacher Admin Portal</h3>
+        <img src="https://media.tenor.com/Pkz68vuQmikAAAAi/rock.gif" height="42px" width="42px" alt="Rock">
+      </div>
       <a href="index.html" class="navlink">&larr; back to student tracker</a>
     </div>
-    <p class="subtext">browse and search student progress hierarchically by student, subject, and chapter.</p>
+    <p class="subtext">browse batches, view students, inspect photo proofs, and assign tasks to whole batches or individual students.</p>
 
-    <div id="adminloginbox" class="darkbox">
-      <label class="inputlabel">teacher admin password</label>
-      <div class="loginrow" style="display:flex;gap:8px;margin-top:5px">
-        <input id="teacherkey" type="password" class="inputbox" placeholder="enter admin password"
-          style="margin:0;flex:1" onkeydown="if(event.key==='Enter')loginadmin()">
-        <button onclick="loginadmin()" class="btn loginbtn" style="width:110px">unlock</button>
+    <!-- Teacher Auth View (Login & Signup tabs just like student portal) -->
+    <div id="teacherauthbox" class="darkbox">
+      <div class="authtabs">
+        <button id="tabteacherloginbtn" onclick="switchteacherauthmode('login')" class="authtabbtn authtabactive">log in</button>
+        <button id="tabteachersignupbtn" onclick="switchteacherauthmode('signup')" class="authtabbtn">sign up</button>
       </div>
-      <div id="adminstatus" class="statusmsg"></div>
+
+      <h4 id="teacherauthheading" style="margin-top:0">Teacher Login</h4>
+      <p id="teacherauthsubtext" class="subtext">Enter your name, subject taught, and pin to log in to the admin portal.</p>
+
+      <label class="inputlabel" for="teachernameinput">Teacher Name</label>
+      <input id="teachernameinput" class="inputbox" placeholder="e.g. Walter White" autocomplete="name">
+
+      <label class="inputlabel" for="teachersubjectinput">Subject Taught</label>
+      <input id="teachersubjectinput" class="inputbox" placeholder="e.g. Physics, Chemistry, Maths, Biology">
+
+      <label id="teacherpinlabel" class="inputlabel" for="teacherpininput">Secret Pin / Password</label>
+      <input id="teacherpininput" type="password" class="inputbox" placeholder="e.g. 1234 or admin secret" onkeydown="if(event.key==='Enter')handleteacherauth()">
+
+      <button id="teacherauthsubmitbtn" onclick="handleteacherauth()" class="btn loginbtn" style="width:100%;padding:10px;font-size:15px">Log in</button>
+      <div id="teacherauthswitchbox" class="authswitchtext">
+        Don't have a teacher account? <a href="javascript:void(0)" onclick="switchteacherauthmode('signup')" class="navlink">sign up here</a>
+      </div>
+      <div id="teacherauthstatus" class="statusmsg"></div>
     </div>
 
-    <div id="studentssection" class="hidden">
-      <div class="darkbox">
-        <div class="headerrow" style="margin-bottom:6px">
-          <h4 style="margin:0">students directory</h4>
-          <span id="studentcountlabel" class="subtext" style="margin:0">0 students</span>
-        </div>
-        <input id="studentsearchbox" oninput="filterstudents()" class="searchbar"
-          placeholder="search student name or batch...">
-        <div id="studentslist" class="cardgrid"></div>
+    <!-- Logged-in Teacher Profile Bar -->
+    <div id="teacherprofilebar" class="teacherbar hidden">
+      <div class="teacherinfo">
+        <span class="teachername" id="loggedteachername">Teacher Name</span>
+        <span class="teachersubjectbadge" id="loggedteachersubject">Subject: Physics</span>
+      </div>
+      <div class="teacheractions">
+        <button onclick="opentaskmodal('batch')" class="actionpillbtn"><span>➕</span> Assign Task</button>
+        <button onclick="opentaskslistmodal()" class="actionpillbtn actionpillbtn-secondary"><span>📋</span> View Tasks</button>
+        <button onclick="doteacherlogout()" class="btn" style="padding:4px 10px;font-size:12px">Switch Account</button>
       </div>
     </div>
 
-    <div id="subjectssection" class="hidden">
+    <!-- LEVEL 1: BATCHES SECTION (Teachers see Batches first) -->
+    <div id="batchessection" class="hidden">
       <div class="darkbox">
-        <button onclick="backtostudents()" class="backbtn">&larr; all students</button>
         <div class="headerrow" style="margin-bottom:6px">
           <div>
-            <span class="subtext" style="display:block;margin:0">student profile</span>
-            <div class="profiletitle-row" style="display:flex;align-items:center;gap:10px;margin-top:2px">
-              <h3 id="currentstudenttitle" style="margin:0">student name</h3>
-              <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn"
-                style="padding:3px 9px;font-size:11px">delete student</button>
+            <h4 style="margin:0">Batches Directory</h4>
+            <span class="subtext" style="display:block;margin:2px 0 0 0">Click on any batch to view its students</span>
+          </div>
+          <span id="batchcountlabel" class="subtext" style="margin:0">0 batches</span>
+        </div>
+        <input id="batchsearchbox" oninput="filterbatches()" class="searchbar" placeholder="search batch name...">
+        <div id="batcheslist" class="cardgrid"></div>
+      </div>
+    </div>
+
+    <!-- LEVEL 2: BATCH STUDENTS SECTION (All students in selected batch) -->
+    <div id="batchstudentssection" class="hidden">
+      <div class="darkbox">
+        <button onclick="backtobatches()" class="backbtn">&larr; all batches</button>
+        <div class="headerrow" style="margin-bottom:6px">
+          <div>
+            <span class="subtext" style="display:block;margin:0">Selected Batch</span>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap">
+              <h3 id="currentbatchtitle" style="margin:0">Batch Name</h3>
+              <button onclick="opentaskmodal('batch', chosenbatch)" class="actionpillbtn"><span>➕</span> Assign Task to Batch</button>
+            </div>
+          </div>
+          <span id="batchstudentcountlabel" class="subtext" style="margin:0">0 students</span>
+        </div>
+        <input id="batchstudentsearchbox" oninput="filterbatchstudents()" class="searchbar" placeholder="search students in this batch...">
+        <div id="batchstudentslist" class="cardgrid"></div>
+      </div>
+    </div>
+
+    <!-- LEVEL 3: STUDENT SUBJECTS SECTION -->
+    <div id="subjectssection" class="hidden">
+      <div class="darkbox">
+        <button onclick="backtobatchstudents()" class="backbtn" id="backtobatchstudentsbtn">&larr; back to batch</button>
+        <div class="headerrow" style="margin-bottom:6px">
+          <div>
+            <span class="subtext" style="display:block;margin:0">Student Profile</span>
+            <div class="profiletitle-row" style="display:flex;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap">
+              <h3 id="currentstudenttitle" style="margin:0">Student Name</h3>
+              <button onclick="opentaskmodal('student', chosenbatch, chosenstudent)" class="actionpillbtn" style="padding:3px 9px;font-size:11px"><span>➕</span> Task Student</button>
+              <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn" style="padding:3px 9px;font-size:11px">delete student</button>
             </div>
           </div>
           <span id="subjectcountlabel" class="subtext" style="margin:0">0 subjects</span>
@@ -60,13 +114,14 @@
       </div>
     </div>
 
+    <!-- LEVEL 4: CHAPTERS SECTION -->
     <div id="chapterssection" class="hidden">
       <div class="darkbox">
         <button onclick="backtosubjects()" class="backbtn">&larr; back to subjects</button>
         <div class="headerrow" style="margin-bottom:6px">
           <div>
             <span id="subjectbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject</span>
-            <h3 id="currentsubjecttitle" style="margin:2px 0 0 0">subject name</h3>
+            <h3 id="currentsubjecttitle" style="margin:2px 0 0 0">Subject Name</h3>
           </div>
           <span id="chaptercountlabel" class="subtext" style="margin:0">0 chapters</span>
         </div>
@@ -75,14 +130,14 @@
       </div>
     </div>
 
+    <!-- LEVEL 5: PROGRESS SECTION -->
     <div id="progresssection" class="hidden">
       <div class="darkbox">
         <button onclick="backtochapters()" class="backbtn">&larr; back to chapters</button>
         <div class="headerrow">
           <div>
-            <span id="progressbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject &gt;
-              chapter</span>
-            <h3 id="currentchaptertitle" style="margin:2px 0 0 0">chapter name</h3>
+            <span id="progressbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject &gt; chapter</span>
+            <h3 id="currentchaptertitle" style="margin:2px 0 0 0">Chapter Name</h3>
           </div>
         </div>
 
@@ -112,6 +167,66 @@
     </div>
   </div>
 
+  <!-- TASK ASSIGNMENT MODAL -->
+  <div id="taskassignmodal" class="modaloverlay hidden" onclick="closetaskmodal()">
+    <div class="modalbox" onclick="event.stopPropagation()">
+      <div class="modalheader">
+        <h4 style="margin:0">Assign Task to Students</h4>
+        <button type="button" class="modalclose" onclick="closetaskmodal()">&times;</button>
+      </div>
+      <div class="modalbody">
+        <label class="inputlabel">Assignment Target</label>
+        <div class="targetselector">
+          <button type="button" id="targetbatchbtn" class="targetbtn active" onclick="settasktarget('batch')">Entire Batch</button>
+          <button type="button" id="targetstudentbtn" class="targetbtn" onclick="settasktarget('student')">Individual Student</button>
+        </div>
+
+        <label class="inputlabel" for="taskbatchselect">Target Batch *</label>
+        <select id="taskbatchselect" class="inputbox" onchange="ontaskbatchchanged()"></select>
+
+        <div id="taskstudentselectgroup" class="hidden">
+          <label class="inputlabel" for="taskstudentselect">Target Student *</label>
+          <select id="taskstudentselect" class="inputbox"></select>
+        </div>
+
+        <label class="inputlabel" for="tasktitleinput">Task Title *</label>
+        <input id="tasktitleinput" class="inputbox" placeholder="e.g. Complete DPP 4 & 5 with photo proof">
+
+        <label class="inputlabel" for="taskdescinput">Task Instructions (Optional)</label>
+        <textarea id="taskdescinput" class="inputbox" rows="3" style="resize:vertical;font-family:inherit" placeholder="e.g. Solve Prabal JEE Main Q1-25. Must attach clear photos before saving progress."></textarea>
+
+        <label class="inputlabel" for="taskduedateinput">Due Date / Time (Optional)</label>
+        <input id="taskduedateinput" class="inputbox" placeholder="e.g. Tomorrow 8:00 PM or 28 Oct">
+
+        <div id="taskmodalstatus" class="statusmsg"></div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" onclick="closetaskmodal()" class="btn">Cancel</button>
+        <button type="button" onclick="submittaskassignment()" class="savebtn" id="submittaskbtn">Assign Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW ASSIGNED TASKS MODAL -->
+  <div id="tasksviewmodal" class="modaloverlay hidden" onclick="closetaskslistmodal()">
+    <div class="modalbox" style="max-width:620px" onclick="event.stopPropagation()">
+      <div class="modalheader">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h4 style="margin:0">Assigned Tasks</h4>
+          <span id="tasksmodalcount" class="badge">0 tasks</span>
+        </div>
+        <button type="button" class="modalclose" onclick="closetaskslistmodal()">&times;</button>
+      </div>
+      <div class="modalbody">
+        <div id="tasksmodallist" class="taskslist"></div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" onclick="closetaskslistmodal()" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Photo Lightbox -->
   <div id="photolightbox" class="photolightbox hidden" onclick="closephotolightbox()">
     <div class="lightboxcontent" onclick="event.stopPropagation()">
       <button type="button" class="lightboxclose" onclick="closephotolightbox()">&times;</button>
@@ -119,10 +234,10 @@
     </div>
   </div>
 
+  <!-- Thor Ban Hammer GIF Overlay (4 seconds) -->
   <div id="banoverlay" class="banoverlay hidden">
     <div class="banmodal">
-      <img id="bangifimg" src="https://media1.tenor.com/m/QDcCvx0Tg5cAAAAC/thorban.gif" alt="Thor Ban Hammer"
-        class="bangif">
+      <img id="bangifimg" src="https://media1.tenor.com/m/QDcCvx0Tg5cAAAAC/thorban.gif" alt="Thor Ban Hammer" class="bangif">
       <div class="bantext">user deleted</div>
     </div>
   </div>
