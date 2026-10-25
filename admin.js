@@ -1,4 +1,9 @@
 const workerurl = "https://peedabloo.desaipahal64.workers.dev"
+const banhammerurl = "https://media1.tenor.com/m/QDcCvx0Tg5cAAAAC/thorban.gif"
+
+// Preload the GIF image for instantaneous playback
+const preloadedbangif = new Image()
+preloadedbangif.src = banhammerurl
 
 let currentadminpassword = ""
 let allentries = []
@@ -309,7 +314,9 @@ async function deletestudent(ev, stunameEnc, stubatchEnc) {
       } else {
         renderstudentsview()
       }
-      alert("Student account \"" + stuname + "\" deleted successfully.")
+
+      // Show Thor ban GIF for 4 seconds
+      await showbangif()
     } else {
       if (resdata.error === "endpoint not found") {
         alert("The backend worker does not have the /api/deletestudent endpoint enabled yet. Please update worker.js in your Cloudflare dashboard as described in setup.md.")
@@ -325,5 +332,34 @@ async function deletestudent(ev, stunameEnc, stubatchEnc) {
 function deleteselectedstudent() {
   if (!chosenstudent || !chosenbatch) return
   deletestudent(null, encodeURIComponent(chosenstudent), encodeURIComponent(chosenbatch))
+}
+
+function showbangif() {
+  return new Promise(resolve => {
+    let overlay = findtag("banoverlay")
+    let gifimg = findtag("bangifimg")
+
+    if (!overlay) {
+      setTimeout(resolve, 4000)
+      return
+    }
+
+    if (gifimg) {
+      // Force GIF animation to play from start with fresh timestamp
+      gifimg.src = banhammerurl + "?t=" + Date.now()
+    }
+
+    overlay.classList.remove("hidden")
+    void overlay.offsetWidth
+    overlay.classList.add("active")
+
+    setTimeout(() => {
+      overlay.classList.remove("active")
+      setTimeout(() => {
+        overlay.classList.add("hidden")
+        resolve()
+      }, 200)
+    }, 4000)
+  })
 }
 

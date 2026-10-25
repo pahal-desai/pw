@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
@@ -8,98 +9,114 @@
   <title>Teacher Admin Tracker</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-<div class="appcontainer">
-  <div class="headerrow">
-    <h3 style="margin:0">teacher admin portal</h3>
-    <a href="index.html" class="navlink">&larr; back to student tracker</a>
-  </div>
-  <p class="subtext">browse and search student progress hierarchically by student, subject, and chapter.</p>
-
-  <div id="adminloginbox" class="darkbox">
-    <label class="inputlabel">teacher admin password</label>
-    <div class="loginrow" style="display:flex;gap:8px;margin-top:5px">
-      <input id="teacherkey" type="password" class="inputbox" placeholder="enter admin password" style="margin:0;flex:1" onkeydown="if(event.key==='Enter')loginadmin()">
-      <button onclick="loginadmin()" class="btn loginbtn" style="width:110px">unlock</button>
+  <div class="appcontainer">
+    <div class="headerrow">
+      <h3 style="margin:0">teacher admin portal</h3><img src="https://media.tenor.com/Pkz68vuQmikAAAAi/rock.gif"
+        height="50px" width="50px">
+      <a href="index.html" class="navlink">&larr; back to student tracker</a>
     </div>
-    <div id="adminstatus" class="statusmsg"></div>
-  </div>
+    <p class="subtext">browse and search student progress hierarchically by student, subject, and chapter.</p>
 
-  <div id="studentssection" class="hidden">
-    <div class="darkbox">
-      <div class="headerrow" style="margin-bottom:6px">
-        <h4 style="margin:0">students directory</h4>
-        <span id="studentcountlabel" class="subtext" style="margin:0">0 students</span>
+    <div id="adminloginbox" class="darkbox">
+      <label class="inputlabel">teacher admin password</label>
+      <div class="loginrow" style="display:flex;gap:8px;margin-top:5px">
+        <input id="teacherkey" type="password" class="inputbox" placeholder="enter admin password"
+          style="margin:0;flex:1" onkeydown="if(event.key==='Enter')loginadmin()">
+        <button onclick="loginadmin()" class="btn loginbtn" style="width:110px">unlock</button>
       </div>
-      <input id="studentsearchbox" oninput="filterstudents()" class="searchbar" placeholder="search student name or batch...">
-      <div id="studentslist" class="cardgrid"></div>
+      <div id="adminstatus" class="statusmsg"></div>
     </div>
-  </div>
 
-  <div id="subjectssection" class="hidden">
-    <div class="darkbox">
-      <button onclick="backtostudents()" class="backbtn">&larr; all students</button>
-      <div class="headerrow" style="margin-bottom:6px">
-        <div>
-          <span class="subtext" style="display:block;margin:0">student profile</span>
-          <div class="profiletitle-row" style="display:flex;align-items:center;gap:10px;margin-top:2px">
-            <h3 id="currentstudenttitle" style="margin:0">student name</h3>
-            <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn" style="padding:3px 9px;font-size:11px">delete student</button>
+    <div id="studentssection" class="hidden">
+      <div class="darkbox">
+        <div class="headerrow" style="margin-bottom:6px">
+          <h4 style="margin:0">students directory</h4>
+          <span id="studentcountlabel" class="subtext" style="margin:0">0 students</span>
+        </div>
+        <input id="studentsearchbox" oninput="filterstudents()" class="searchbar"
+          placeholder="search student name or batch...">
+        <div id="studentslist" class="cardgrid"></div>
+      </div>
+    </div>
+
+    <div id="subjectssection" class="hidden">
+      <div class="darkbox">
+        <button onclick="backtostudents()" class="backbtn">&larr; all students</button>
+        <div class="headerrow" style="margin-bottom:6px">
+          <div>
+            <span class="subtext" style="display:block;margin:0">student profile</span>
+            <div class="profiletitle-row" style="display:flex;align-items:center;gap:10px;margin-top:2px">
+              <h3 id="currentstudenttitle" style="margin:0">student name</h3>
+              <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn"
+                style="padding:3px 9px;font-size:11px">delete student</button>
+            </div>
+          </div>
+          <span id="subjectcountlabel" class="subtext" style="margin:0">0 subjects</span>
+        </div>
+        <input id="subjectsearchbox" oninput="filtersubjects()" class="searchbar" placeholder="search subjects...">
+        <div id="subjectslist" class="cardgrid"></div>
+      </div>
+    </div>
+
+    <div id="chapterssection" class="hidden">
+      <div class="darkbox">
+        <button onclick="backtosubjects()" class="backbtn">&larr; back to subjects</button>
+        <div class="headerrow" style="margin-bottom:6px">
+          <div>
+            <span id="subjectbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject</span>
+            <h3 id="currentsubjecttitle" style="margin:2px 0 0 0">subject name</h3>
+          </div>
+          <span id="chaptercountlabel" class="subtext" style="margin:0">0 chapters</span>
+        </div>
+        <input id="chaptersearchbox" oninput="filterchapters()" class="searchbar" placeholder="search chapters...">
+        <div id="chapterslist" class="cardgrid"></div>
+      </div>
+    </div>
+
+    <div id="progresssection" class="hidden">
+      <div class="darkbox">
+        <button onclick="backtochapters()" class="backbtn">&larr; back to chapters</button>
+        <div class="headerrow">
+          <div>
+            <span id="progressbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject &gt;
+              chapter</span>
+            <h3 id="currentchaptertitle" style="margin:2px 0 0 0">chapter name</h3>
           </div>
         </div>
-        <span id="subjectcountlabel" class="subtext" style="margin:0">0 subjects</span>
-      </div>
-      <input id="subjectsearchbox" oninput="filtersubjects()" class="searchbar" placeholder="search subjects...">
-      <div id="subjectslist" class="cardgrid"></div>
-    </div>
-  </div>
 
-  <div id="chapterssection" class="hidden">
-    <div class="darkbox">
-      <button onclick="backtosubjects()" class="backbtn">&larr; back to subjects</button>
-      <div class="headerrow" style="margin-bottom:6px">
-        <div>
-          <span id="subjectbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject</span>
-          <h3 id="currentsubjecttitle" style="margin:2px 0 0 0">subject name</h3>
-        </div>
-        <span id="chaptercountlabel" class="subtext" style="margin:0">0 chapters</span>
-      </div>
-      <input id="chaptersearchbox" oninput="filterchapters()" class="searchbar" placeholder="search chapters...">
-      <div id="chapterslist" class="cardgrid"></div>
-    </div>
-  </div>
-
-  <div id="progresssection" class="hidden">
-    <div class="darkbox">
-      <button onclick="backtochapters()" class="backbtn">&larr; back to chapters</button>
-      <div class="headerrow">
-        <div>
-          <span id="progressbreadcrumb" class="subtext" style="display:block;margin:0">student &gt; subject &gt; chapter</span>
-          <h3 id="currentchaptertitle" style="margin:2px 0 0 0">chapter name</h3>
-        </div>
-      </div>
-
-      <div class="progressgrid">
-        <div class="progresscard">
-          <div class="progresslabel">dpp progress</div>
-          <div id="dppdisplay" class="progressval">-</div>
-        </div>
-        <div class="progresscard">
-          <div class="progresslabel">prabal (jee main)</div>
-          <div id="prabaldisplay" class="progressval">-</div>
-        </div>
-        <div class="progresscard">
-          <div class="progresslabel">parikshit (jee adv)</div>
-          <div id="parikshitdisplay" class="progressval">-</div>
-        </div>
-        <div class="progresscard">
-          <div class="progresslabel">pyqs progress</div>
-          <div id="pyqdisplay" class="progressval">-</div>
+        <div class="progressgrid">
+          <div class="progresscard">
+            <div class="progresslabel">dpp progress</div>
+            <div id="dppdisplay" class="progressval">-</div>
+          </div>
+          <div class="progresscard">
+            <div class="progresslabel">prabal (jee main)</div>
+            <div id="prabaldisplay" class="progressval">-</div>
+          </div>
+          <div class="progresscard">
+            <div class="progresslabel">parikshit (jee adv)</div>
+            <div id="parikshitdisplay" class="progressval">-</div>
+          </div>
+          <div class="progresscard">
+            <div class="progresslabel">pyqs progress</div>
+            <div id="pyqdisplay" class="progressval">-</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-<script src="admin.js"></script>
+
+  <div id="banoverlay" class="banoverlay hidden">
+    <div class="banmodal">
+      <img id="bangifimg" src="https://media1.tenor.com/m/QDcCvx0Tg5cAAAAC/thorban.gif" alt="Thor Ban Hammer"
+        class="bangif">
+      <div class="bantext">user deleted</div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
 </body>
+
 </html>
