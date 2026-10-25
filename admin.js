@@ -100,16 +100,14 @@ function renderstudentsview() {
     let countbadge = subcount + (subcount === 1 ? " subject" : " subjects") + " • " + chapcount + (chapcount === 1 ? " chapter" : " chapters")
 
     studhtml += "<div class='cardbtn' onclick='pickstudent(\"" + encodeURIComponent(eachstud.name) + "\", \"" + encodeURIComponent(eachstud.batch) + "\")'>"
-    studhtml += "<div style='display:flex;align-items:center;gap:12px;flex:1;min-width:0'>"
-    studhtml += "  <div>"
-    studhtml += "    <div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'>"
-    studhtml += "      <span class='cardtitle'>" + eachstud.name + "</span>"
-    studhtml += "      <button type='button' class='delbtn' style='padding:2px 8px;font-size:11px;' onclick='deletestudent(event, \"" + encodeURIComponent(eachstud.name) + "\", \"" + encodeURIComponent(eachstud.batch) + "\")' title='delete student account'>delete</button>"
-    studhtml += "    </div>"
-    studhtml += "    <div class='cardmeta'>batch: " + eachstud.batch + "</div>"
+    studhtml += "<div class='cardinfo'>"
+    studhtml += "  <div class='cardtitle-row'>"
+    studhtml += "    <span class='cardtitle'>" + eachstud.name + "</span>"
+    studhtml += "    <button type='button' class='delbtn carddelbtn' onclick='deletestudent(event, \"" + encodeURIComponent(eachstud.name) + "\", \"" + encodeURIComponent(eachstud.batch) + "\")' title='delete student account'>delete</button>"
     studhtml += "  </div>"
+    studhtml += "  <div class='cardmeta'>batch: " + eachstud.batch + "</div>"
     studhtml += "</div>"
-    studhtml += "<span class='badge' style='margin-left:8px;white-space:nowrap'>" + countbadge + " &rarr;</span>"
+    studhtml += "<span class='badge cardbadge'>" + countbadge + " &rarr;</span>"
     studhtml += "</div>"
   }
   studentlistnode.innerHTML = studhtml
@@ -167,8 +165,8 @@ function rendersubjectsview() {
     let sublabel = chapcount === 1 ? "1 chapter" : chapcount + " chapters"
 
     subhtml += "<div class='cardbtn' onclick='picksubject(\"" + encodeURIComponent(eachsub) + "\")'>"
-    subhtml += "<div><div class='cardtitle'>" + eachsub + "</div><div class='cardmeta'>click to browse chapters</div></div>"
-    subhtml += "<span class='badge'>" + sublabel + " &rarr;</span>"
+    subhtml += "<div class='cardinfo'><div class='cardtitle'>" + eachsub + "</div><div class='cardmeta'>click to browse chapters</div></div>"
+    subhtml += "<span class='badge cardbadge'>" + sublabel + " &rarr;</span>"
     subhtml += "</div>"
   }
   sublistnode.innerHTML = subhtml
@@ -218,8 +216,8 @@ function renderchaptersview() {
     let previewbadge = targetrecord && targetrecord.dppprogress ? "DPP: " + targetrecord.dppprogress : "view progress"
 
     chaphtml += "<div class='cardbtn' onclick='pickchapter(\"" + encodeURIComponent(eachchap) + "\")'>"
-    chaphtml += "<div><div class='cardtitle'>" + eachchap + "</div><div class='cardmeta'>" + chosensubject + "</div></div>"
-    chaphtml += "<span class='badge'>" + previewbadge + " &rarr;</span>"
+    chaphtml += "<div class='cardinfo'><div class='cardtitle'>" + eachchap + "</div><div class='cardmeta'>" + chosensubject + "</div></div>"
+    chaphtml += "<span class='badge cardbadge'>" + previewbadge + " &rarr;</span>"
     chaphtml += "</div>"
   }
   chaplistnode.innerHTML = chaphtml

@@ -1,5 +1,13 @@
-<title>Progress Tracker</title>
-<link rel="stylesheet" href="styles.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#121212">
+  <meta name="description" content="Student Marks & Progress Tracker">
+  <title>Progress Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
 <div class="appcontainer">
   <div class="headerrow">
@@ -17,12 +25,12 @@
     <p id="authsubtext" class="subtext">Enter your name, batch, and pin to log in to your account.</p>
 
     <label class="inputlabel">Student Name</label>
-    <input id="pupilname" class="inputbox" placeholder="e.g. Pahal Desai">
+    <input id="pupilname" class="inputbox" placeholder="e.g. Pahal Desai" autocomplete="name">
 
     <label class="inputlabel">Batch</label>
     <input id="pupilbatch" class="inputbox" placeholder="e.g. 46-AJ201MA">
     <label id="pinlabel" class="inputlabel">Secret Pin</label>
-    <input id="pupilpin" type="password" class="inputbox" placeholder="e.g. 1234">
+    <input id="pupilpin" type="password" class="inputbox" placeholder="e.g. 1234" inputmode="numeric">
 
     <button id="authsubmitbtn" onclick="handleauthsubmit()" class="btn">Login</button>
     <div id="authswitchbox" class="authswitchtext">
@@ -60,7 +68,7 @@
       <div id="newsubjectform" class="formcard hidden">
         <label class="inputlabel">Subject Name</label>
         <input id="newsubjectname" class="inputbox" placeholder="e.g. Physics, Chemistry, Maths, Biology">
-        <div style="display:flex;gap:8px">
+        <div class="formactions" style="display:flex;gap:8px">
           <button onclick="addnewsubject()" class="savebtn">Save subject</button>
           <button onclick="cancelsubjectinput()" class="btn">Cancel</button>
         </div>
@@ -92,7 +100,7 @@
       <div id="newchapterform" class="formcard hidden">
         <label class="inputlabel">Chapter Name</label>
         <input id="newchaptername" class="inputbox" placeholder="e.g. Kinematics, Thermodynamics">
-        <div style="display:flex;gap:8px">
+        <div class="formactions" style="display:flex;gap:8px">
           <button onclick="addnewchapter()" class="savebtn">Add Chapter</button>
           <button onclick="cancelchapterinput()" class="btn">Cancel</button>
         </div>
@@ -124,7 +132,7 @@
         <label class="inputlabel">PYQs progress</label>
         <input id="pyqinput" class="inputbox" placeholder="e.g. 2019-2024 solved">
 
-        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+        <div class="saverow" style="display:flex;align-items:center;gap:12px;margin-top:8px">
           <button onclick="savechapterprogress()" class="savebtn">Save Progress</button>
           <span id="progressstatus" class="statusmsg"></span>
         </div>
@@ -134,3 +142,4 @@
 </div>
 <script src="script.js"></script>
 </body>
+</html>

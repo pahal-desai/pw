@@ -1,15 +1,32 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: #121212;
   color: #eeeeee;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   margin: 0;
   padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
+
 .appcontainer {
   max-width: 720px;
   margin: 0 auto;
+  width: 100%;
 }
+
 .darkbox {
   background: #181818;
   border: 1px solid #2e2e2e;
@@ -17,26 +34,37 @@ body {
   padding: 18px;
   margin-bottom: 16px;
 }
+
 .headerrow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 12px;
 }
+
 .navlink {
   color: #58a6ff;
   text-decoration: none;
   font-size: 13px;
+  transition: color 0.15s;
 }
+
 .navlink:hover {
   text-decoration: underline;
+  color: #79b8ff;
 }
+
 .subtext {
   color: #888888;
   font-size: 13px;
   margin-top: -4px;
   margin-bottom: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
+
 .authtabs {
   display: flex;
   gap: 8px;
@@ -44,44 +72,64 @@ body {
   border-bottom: 1px solid #333333;
   padding-bottom: 10px;
 }
+
 .authtabbtn {
   background: transparent;
   color: #888888;
   border: none;
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: 14px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .authtabbtn:hover {
   color: #ffffff;
   background: #252525;
 }
+
 .authtabactive {
   background: #1f3a5f !important;
   color: #ffffff !important;
   font-weight: 600;
 }
+
 .authswitchtext {
   font-size: 13px;
   color: #888888;
   margin-top: 12px;
 }
+
+.inputlabel {
+  font-size: 12px;
+  color: #aaaaaa;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
 .inputbox {
   width: 100%;
   background: #222222;
   color: #eeeeee;
   border: 1px solid #444444;
-  border-radius: 5px;
-  padding: 9px 12px;
-  margin: 5px 0 12px 0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 0 12px 0;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+
 .inputbox:focus {
   outline: none;
   border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
 }
+
 .searchbar {
   width: 100%;
   background: #202020;
@@ -92,42 +140,56 @@ body {
   margin: 6px 0 12px 0;
   box-sizing: border-box;
   font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+
 .searchbar:focus {
   outline: none;
   border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
 }
-.inputlabel {
-  font-size: 12px;
-  color: #aaaaaa;
-  display: block;
-}
+
 .btn {
   background: #2a2a2a;
   color: #ffffff;
   border: 1px solid #444444;
-  border-radius: 5px;
+  border-radius: 6px;
   padding: 8px 14px;
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .btn:hover {
   background: #383838;
+  border-color: #555555;
 }
+
+.btn:active {
+  transform: scale(0.97);
+}
+
 .backbtn {
   background: transparent;
   color: #58a6ff;
   border: none;
   cursor: pointer;
   font-size: 13px;
-  padding: 0;
-  margin-bottom: 12px;
+  padding: 4px 0;
+  margin-bottom: 10px;
   display: inline-flex;
   align-items: center;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .backbtn:hover {
   text-decoration: underline;
 }
+
 .bigactionbtn {
   background: #1f3a5f;
   color: #ffffff;
@@ -137,115 +199,170 @@ body {
   font-size: 15px;
   cursor: pointer;
   display: inline-block;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .bigactionbtn:hover {
   background: #264775;
+  border-color: #3b6ba8;
 }
+
+.bigactionbtn:active {
+  transform: scale(0.97);
+}
+
 .savebtn {
   background: #238636;
   border: 1px solid #2ea043;
   color: #ffffff;
   padding: 8px 16px;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .savebtn:hover {
   background: #2ea043;
 }
+
+.savebtn:active {
+  transform: scale(0.97);
+}
+
 .delbtn {
   background: #5c1d1d;
   border: 1px solid #7a2828;
   color: #ffffff;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 12px;
+  font-family: inherit;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .delbtn:hover {
   background: #8b2525;
   border-color: #b53838;
 }
+
 .delbtn:active {
   transform: scale(0.96);
 }
+
 .cardgrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
   margin-top: 10px;
 }
+
 .cardbtn {
   background: #1f1f1f;
   border: 1px solid #333333;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 14px 16px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: left;
-  transition: border-color 0.15s, background 0.15s;
+  gap: 12px;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .cardbtn:hover {
   background: #272727;
   border-color: #58a6ff;
 }
+
+.cardbtn:active {
+  background: #252525;
+}
+
+.cardinfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardtitle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .cardtitle {
   font-size: 15px;
   font-weight: 600;
   color: #ffffff;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
+
 .cardmeta {
   font-size: 12px;
   color: #888888;
-  margin-top: 2px;
+  margin-top: 3px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
+
 .badge {
   background: #2a2a2a;
   color: #58a6ff;
   border-radius: 12px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
+
 .formcard {
   background: #141414;
   border: 1px dashed #3a3a3a;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 14px;
   margin: 12px 0;
 }
+
 .statusmsg {
   color: #58a6ff;
   font-size: 13px;
   min-height: 18px;
   margin: 6px 0;
+  word-break: break-word;
 }
+
 .progressgrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin: 12px 0;
 }
-@media (max-width: 500px) {
-  .progressgrid {
-    grid-template-columns: 1fr;
-  }
-}
+
 .progresscard {
   background: #1e1e1e;
   border: 1px solid #313131;
-  border-radius: 6px;
-  padding: 12px;
+  border-radius: 8px;
+  padding: 12px 14px;
 }
+
 .progresslabel {
   font-size: 12px;
   color: #888888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .progressval {
   font-size: 14px;
   color: #ffffff;
@@ -253,6 +370,188 @@ body {
   font-weight: 500;
   word-break: break-word;
 }
+
 .hidden {
   display: none !important;
+}
+
+/* ==========================================================================
+   Mobile / Phone Layout Styles (< 600px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  body {
+    padding: 10px 10px 24px 10px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+
+  .darkbox {
+    padding: 14px 12px;
+    margin-bottom: 12px;
+  }
+
+  .headerrow {
+    gap: 8px;
+  }
+
+  .headerrow h3 {
+    font-size: 17px;
+  }
+
+  .headerrow h4 {
+    font-size: 15px;
+  }
+
+  .navlink {
+    font-size: 12px;
+  }
+
+  /* 16px prevents iOS Safari from automatically zooming in */
+  .inputbox,
+  .searchbar {
+    font-size: 16px;
+    padding: 11px 12px;
+    margin: 0 0 10px 0;
+  }
+
+  /* Segmented tabs on mobile */
+  .authtabs {
+    gap: 6px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+  }
+
+  .authtabbtn {
+    flex: 1;
+    text-align: center;
+    padding: 9px 8px;
+    font-size: 14px;
+  }
+
+  #authsubmitbtn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    margin-top: 4px;
+  }
+
+  /* Login row in Admin Portal */
+  .loginrow {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .loginrow .loginbtn {
+    width: 100% !important;
+    padding: 11px 16px !important;
+    font-size: 15px;
+  }
+
+  /* Cards on phone */
+  .cardbtn {
+    padding: 12px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cardinfo {
+    flex: 1 1 100%;
+  }
+
+  .cardtitle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .cardtitle {
+    font-size: 15px;
+  }
+
+  .carddelbtn {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .cardmeta {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .cardbadge {
+    align-self: flex-start;
+    font-size: 11px;
+    padding: 3px 8px;
+    margin-top: 2px;
+  }
+
+  /* Form actions */
+  .formactions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .formactions button {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .bigactionbtn {
+    width: 100%;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  /* Save row on phone */
+  .saverow {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .saverow .savebtn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    text-align: center;
+  }
+
+  .saverow .statusmsg {
+    text-align: center;
+  }
+
+  /* Progress cards on phone: 1 column */
+  .progressgrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .progresscard {
+    padding: 10px 12px;
+  }
+
+  .backbtn {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+}
+
+/* Extra small devices (<= 360px) */
+@media (max-width: 360px) {
+  body {
+    padding: 8px 6px 20px 6px;
+  }
+
+  .darkbox {
+    padding: 12px 10px;
+  }
+
+  .cardbtn {
+    padding: 10px 10px;
+  }
 }

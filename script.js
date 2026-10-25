@@ -190,8 +190,8 @@ function filtersubjects() {
     let chapcount = recordsdata.filter(entry => entry.subjectname === eachsub && entry.chaptername && entry.chaptername.trim() !== "").length
     let countlabel = chapcount === 1 ? "1 chapter" : chapcount + " chapters"
     cardshtml += "<div class='cardbtn' onclick='showchapterspage(\"" + eachsub + "\")'>"
-    cardshtml += "<div><div class='cardtitle'>" + eachsub + "</div><div class='cardmeta'>click to view chapters</div></div>"
-    cardshtml += "<span class='badge'>" + countlabel + " &rarr;</span>"
+    cardshtml += "<div class='cardinfo'><div class='cardtitle'>" + eachsub + "</div><div class='cardmeta'>click to view chapters</div></div>"
+    cardshtml += "<span class='badge cardbadge'>" + countlabel + " &rarr;</span>"
     cardshtml += "</div>"
   }
   cardsnode.innerHTML = cardshtml
@@ -281,8 +281,8 @@ function filterchapters() {
     let dpphint = targetrow && targetrow.dppprogress ? "DPP: " + targetrow.dppprogress : "progress not set"
 
     cardshtml += "<div class='cardbtn' onclick='showprogresspage(\"" + eachchap + "\")'>"
-    cardshtml += "<div><div class='cardtitle'>" + eachchap + "</div><div class='cardmeta'>" + dpphint + "</div></div>"
-    cardshtml += "<span class='badge'>view / edit &rarr;</span>"
+    cardshtml += "<div class='cardinfo'><div class='cardtitle'>" + eachchap + "</div><div class='cardmeta'>" + dpphint + "</div></div>"
+    cardshtml += "<span class='badge cardbadge'>view / edit &rarr;</span>"
     cardshtml += "</div>"
   }
   cardsnode.innerHTML = cardshtml
