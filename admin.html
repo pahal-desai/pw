@@ -11,7 +11,7 @@
   <div id="adminloginbox" class="darkbox">
     <label class="inputlabel">teacher admin password</label>
     <div style="display:flex;gap:8px;margin-top:5px">
-      <input id="teacherkey" type="password" class="inputbox" placeholder="enter admin password" style="margin:0;flex:1">
+      <input id="teacherkey" type="password" class="inputbox" placeholder="enter admin password" style="margin:0;flex:1" onkeydown="if(event.key==='Enter')loginadmin()">
       <button onclick="loginadmin()" class="btn" style="width:110px">unlock</button>
     </div>
     <div id="adminstatus" class="statusmsg"></div>
@@ -34,7 +34,10 @@
       <div class="headerrow" style="margin-bottom:6px">
         <div>
           <span class="subtext" style="display:block;margin:0">student profile</span>
-          <h3 id="currentstudenttitle" style="margin:2px 0 0 0">student name</h3>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+            <h3 id="currentstudenttitle" style="margin:0">student name</h3>
+            <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn" style="padding:3px 9px;font-size:11px">delete student</button>
+          </div>
         </div>
         <span id="subjectcountlabel" class="subtext" style="margin:0">0 subjects</span>
       </div>

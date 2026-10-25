@@ -161,9 +161,14 @@ body {
   border-radius: 5px;
   cursor: pointer;
   font-size: 12px;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 .delbtn:hover {
-  background: #7a2828;
+  background: #8b2525;
+  border-color: #b53838;
+}
+.delbtn:active {
+  transform: scale(0.96);
 }
 .cardgrid {
   display: grid;

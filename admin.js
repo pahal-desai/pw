@@ -1,5 +1,6 @@
 const workerurl = "https://peedabloo.desaipahal64.workers.dev"
 
+let currentadminpassword = ""
 let allentries = []
 let allaccounts = []
 let chosenstudent = ""
@@ -30,6 +31,7 @@ async function loginadmin() {
     })
     let parsedres = await servreply.json()
     if (parsedres.success) {
+      currentadminpassword = adminpass
       statuslabel.innerText = ""
       allentries = parsedres.records || []
       allaccounts = parsedres.accounts || []
@@ -98,8 +100,16 @@ function renderstudentsview() {
     let countbadge = subcount + (subcount === 1 ? " subject" : " subjects") + " • " + chapcount + (chapcount === 1 ? " chapter" : " chapters")
 
     studhtml += "<div class='cardbtn' onclick='pickstudent(\"" + encodeURIComponent(eachstud.name) + "\", \"" + encodeURIComponent(eachstud.batch) + "\")'>"
-    studhtml += "<div><div class='cardtitle'>" + eachstud.name + "</div><div class='cardmeta'>batch: " + eachstud.batch + "</div></div>"
-    studhtml += "<span class='badge'>" + countbadge + " &rarr;</span>"
+    studhtml += "<div style='display:flex;align-items:center;gap:12px;flex:1;min-width:0'>"
+    studhtml += "  <div>"
+    studhtml += "    <div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'>"
+    studhtml += "      <span class='cardtitle'>" + eachstud.name + "</span>"
+    studhtml += "      <button type='button' class='delbtn' style='padding:2px 8px;font-size:11px;' onclick='deletestudent(event, \"" + encodeURIComponent(eachstud.name) + "\", \"" + encodeURIComponent(eachstud.batch) + "\")' title='delete student account'>delete</button>"
+    studhtml += "    </div>"
+    studhtml += "    <div class='cardmeta'>batch: " + eachstud.batch + "</div>"
+    studhtml += "  </div>"
+    studhtml += "</div>"
+    studhtml += "<span class='badge' style='margin-left:8px;white-space:nowrap'>" + countbadge + " &rarr;</span>"
     studhtml += "</div>"
   }
   studentlistnode.innerHTML = studhtml
@@ -241,10 +251,15 @@ function renderprogressview() {
 }
 
 function backtostudents() {
+  chosenstudent = ""
+  chosenbatch = ""
+  chosensubject = ""
+  chosenchapter = ""
   findtag("subjectssection").classList.add("hidden")
   findtag("chapterssection").classList.add("hidden")
   findtag("progresssection").classList.add("hidden")
   findtag("studentssection").classList.remove("hidden")
+  renderstudentsview()
 }
 
 function backtosubjects() {
@@ -257,3 +272,60 @@ function backtochapters() {
   findtag("progresssection").classList.add("hidden")
   findtag("chapterssection").classList.remove("hidden")
 }
+
+async function deletestudent(ev, stunameEnc, stubatchEnc) {
+  if (ev) {
+    ev.stopPropagation()
+  }
+
+  let stuname = decodeURIComponent(stunameEnc)
+  let stubatch = decodeURIComponent(stubatchEnc)
+
+  let confirmed = confirm("Are you sure you want to delete student account for \"" + stuname + "\" (" + stubatch + ")?\n\nThis will permanently delete the student account and all of their progress records.")
+  if (!confirmed) return
+
+  let adminpass = currentadminpassword || findtag("teacherkey").value.trim()
+  if (!adminpass) {
+    adminpass = prompt("Please enter the teacher admin password to confirm deletion:")
+    if (!adminpass) return
+  }
+
+  try {
+    let delres = await fetch(workerurl + "/api/deletestudent", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        adminpassword: adminpass,
+        studentname: stuname,
+        studentbatch: stubatch
+      })
+    })
+
+    let resdata = await delres.json()
+    if (resdata.success) {
+      allaccounts = allaccounts.filter(a => !(a.studentname === stuname && a.studentbatch === stubatch))
+      allentries = allentries.filter(r => !(r.studentname === stuname && r.studentbatch === stubatch))
+
+      if (chosenstudent === stuname && chosenbatch === stubatch) {
+        backtostudents()
+      } else {
+        renderstudentsview()
+      }
+      alert("Student account \"" + stuname + "\" deleted successfully.")
+    } else {
+      if (resdata.error === "endpoint not found") {
+        alert("The backend worker does not have the /api/deletestudent endpoint enabled yet. Please update worker.js in your Cloudflare dashboard as described in setup.md.")
+      } else {
+        alert(resdata.error || "Failed to delete student account.")
+      }
+    }
+  } catch (err) {
+    alert("Error connecting to server while deleting student.")
+  }
+}
+
+function deleteselectedstudent() {
+  if (!chosenstudent || !chosenbatch) return
+  deletestudent(null, encodeURIComponent(chosenstudent), encodeURIComponent(chosenbatch))
+}
+

@@ -89,6 +89,7 @@ alter table studentprogress disable row level security;
 ## 6. teacher admin gui
 1. open `admin.html` and unlock with admin password (`topsecret`).
 2. **students directory**: shows every registered student with total subjects & chapters count.
-3. **subjects level**: clicking a student shows their subjects and chapter counts with search.
-4. **chapters level**: clicking a subject shows all chapters in that subject with search.
-5. **progress level**: clicking a chapter displays progress cards for dpp, prabal, parikshit, and pyqs.
+3. **delete student account**: click the delete button beside any student name in the directory or on their profile header to delete their account and all associated progress.
+4. **subjects level**: clicking a student shows their subjects and chapter counts with search.
+5. **chapters level**: clicking a subject shows all chapters in that subject with search.
+6. **progress level**: clicking a chapter displays progress cards for dpp, prabal, parikshit, and pyqs.
