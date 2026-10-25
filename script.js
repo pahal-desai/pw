@@ -5,6 +5,12 @@ let activestudent = null
 let recordsdata = []
 let activesubject = ""
 let activechapter = ""
+let currentphotos = {
+  dpp: "",
+  prabal: "",
+  parikshit: "",
+  pyqs: ""
+}
 
 function getnode(tagid) {
   return document.getElementById(tagid)
@@ -117,6 +123,7 @@ function dologout() {
   recordsdata = []
   activesubject = ""
   activechapter = ""
+  currentphotos = { dpp: "", prabal: "", parikshit: "", pyqs: "" }
   getnode("pupilpin").value = ""
   getnode("subjectsview").classList.add("hidden")
   getnode("chaptersview").classList.add("hidden")
@@ -345,8 +352,149 @@ function showprogresspage(chapname) {
   getnode("prabalinput").value = (targetrow && targetrow.prabalprogress) || ""
   getnode("parikshitinput").value = (targetrow && targetrow.parikshitprogress) || ""
   getnode("pyqinput").value = (targetrow && targetrow.pyqsprogress) || ""
-  getnode("progressstatus").innerText = ""
+  
+  let savemsg = getnode("progressstatus")
+  savemsg.style.color = "#58a6ff"
+  savemsg.innerText = ""
+
+  // Load photos from target row
+  currentphotos.dpp = (targetrow && targetrow.dppphoto) || ""
+  currentphotos.prabal = (targetrow && targetrow.prabalphoto) || ""
+  currentphotos.parikshit = (targetrow && targetrow.parikshitphoto) || ""
+  currentphotos.pyqs = (targetrow && targetrow.pyqsphoto) || ""
+
+  for (let key of ["dpp", "prabal", "parikshit", "pyqs"]) {
+    updatephotoui(key)
+    let grp = getnode(key + "group")
+    if (grp) grp.classList.remove("photomissing")
+  }
 }
+
+function triggerphotoupload(key) {
+  let fileinput = getnode(key + "fileinput")
+  if (fileinput) {
+    fileinput.click()
+  }
+}
+
+async function handlephotoupload(key, file) {
+  if (!file) return
+  if (!file.type || !file.type.startsWith("image/")) {
+    alert("Please select a valid image file.")
+    return
+  }
+
+  let savemsg = getnode("progressstatus")
+  savemsg.style.color = "#58a6ff"
+  savemsg.innerText = "Processing image..."
+
+  try {
+    let dataUrl = await compressimage(file, 1200, 0.75)
+    currentphotos[key] = dataUrl
+    updatephotoui(key)
+    let grp = getnode(key + "group")
+    if (grp) grp.classList.remove("photomissing")
+    savemsg.innerText = ""
+  } catch (err) {
+    alert("Error processing image: " + err.message)
+    savemsg.innerText = ""
+  }
+}
+
+function removephoto(key) {
+  currentphotos[key] = ""
+  let fileinput = getnode(key + "fileinput")
+  if (fileinput) fileinput.value = ""
+  updatephotoui(key)
+}
+
+function updatephotoui(key) {
+  let hasPhoto = !!currentphotos[key]
+  let previewbox = getnode(key + "previewbox")
+  let uploadbtnbox = getnode(key + "uploadbtnbox")
+  let previewimg = getnode(key + "previewimg")
+  let badge = getnode(key + "photobadge")
+
+  if (hasPhoto) {
+    if (previewimg) previewimg.src = currentphotos[key]
+    if (previewbox) previewbox.classList.remove("hidden")
+    if (uploadbtnbox) uploadbtnbox.classList.add("hidden")
+    if (badge) {
+      badge.innerText = "✓ Photo added"
+      badge.className = "photostatusbadge badge-success"
+    }
+  } else {
+    if (previewimg) previewimg.src = ""
+    if (previewbox) previewbox.classList.add("hidden")
+    if (uploadbtnbox) uploadbtnbox.classList.remove("hidden")
+    if (badge) {
+      badge.innerText = "Photo required *"
+      badge.className = "photostatusbadge badge-required"
+    }
+  }
+}
+
+function compressimage(file, maxDimension = 1200, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader()
+    reader.onerror = () => reject(new Error("Failed to read file"))
+    reader.onload = (e) => {
+      let img = new Image()
+      img.onerror = () => reject(new Error("Failed to load image"))
+      img.onload = () => {
+        let width = img.width
+        let height = img.height
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width)
+            width = maxDimension
+          } else {
+            width = Math.round((width * maxDimension) / height)
+            height = maxDimension
+          }
+        }
+
+        let canvas = document.createElement("canvas")
+        canvas.width = width
+        canvas.height = height
+        let ctx = canvas.getContext("2d")
+        ctx.drawImage(img, 0, 0, width, height)
+
+        let dataUrl = canvas.toDataURL("image/jpeg", quality)
+        resolve(dataUrl)
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function openphotolightbox(src) {
+  let lightbox = getnode("photolightbox")
+  let lightboximg = getnode("lightboximg")
+  if (lightbox && lightboximg) {
+    lightboximg.src = src
+    lightbox.classList.remove("hidden")
+  }
+}
+
+function closephotolightbox() {
+  let lightbox = getnode("photolightbox")
+  let lightboximg = getnode("lightboximg")
+  if (lightbox) {
+    lightbox.classList.add("hidden")
+  }
+  if (lightboximg) {
+    lightboximg.src = ""
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closephotolightbox()
+  }
+})
 
 async function savechapterprogress() {
   let dppbox = getnode("dppinput").value.trim()
@@ -355,7 +503,33 @@ async function savechapterprogress() {
   let pyqbox = getnode("pyqinput").value.trim()
   let savemsg = getnode("progressstatus")
 
-  savemsg.innerText = "syncing..."
+  // Strict Validation: Require all 4 photos before submission
+  let missing = []
+  if (!currentphotos.dpp) missing.push("DPP")
+  if (!currentphotos.prabal) missing.push("Prabal")
+  if (!currentphotos.parikshit) missing.push("Parikshit")
+  if (!currentphotos.pyqs) missing.push("PYQs")
+
+  for (let key of ["dpp", "prabal", "parikshit", "pyqs"]) {
+    let grp = getnode(key + "group")
+    if (grp) {
+      if (!currentphotos[key]) {
+        grp.classList.add("photomissing")
+      } else {
+        grp.classList.remove("photomissing")
+      }
+    }
+  }
+
+  if (missing.length > 0) {
+    savemsg.style.color = "#ff6b6b"
+    savemsg.innerText = "Cannot submit: Photos required for " + missing.join(", ") + "!"
+    alert("Cannot submit without photos! Please attach photos for all 4 sections:\n• " + missing.join("\n• "))
+    return
+  }
+
+  savemsg.style.color = "#58a6ff"
+  savemsg.innerText = "syncing with database..."
 
   let targetrow = recordsdata.find(entry => entry.subjectname === activesubject && entry.chaptername === activechapter)
 
@@ -373,17 +547,24 @@ async function savechapterprogress() {
         dppprogress: dppbox,
         prabalprogress: prabalbox,
         parikshitprogress: parikshitbox,
-        pyqsprogress: pyqbox
+        pyqsprogress: pyqbox,
+        dppphoto: currentphotos.dpp,
+        prabalphoto: currentphotos.prabal,
+        parikshitphoto: currentphotos.parikshit,
+        pyqsphoto: currentphotos.pyqs
       })
     })
     let resdata = await saveres.json()
     if (resdata.success) {
-      savemsg.innerText = "progress synced with database!"
+      savemsg.style.color = "#3fb950"
+      savemsg.innerText = "Progress and photos synced with database!"
       await syncstudentdata()
     } else {
+      savemsg.style.color = "#ff6b6b"
       savemsg.innerText = resdata.error || "failed to save"
     }
   } catch (err) {
+    savemsg.style.color = "#ff6b6b"
     savemsg.innerText = "error saving progress"
   }
 }

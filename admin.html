@@ -90,21 +90,32 @@
           <div class="progresscard">
             <div class="progresslabel">dpp progress</div>
             <div id="dppdisplay" class="progressval">-</div>
+            <div id="dppphotoarea" class="adminphotoarea"></div>
           </div>
           <div class="progresscard">
             <div class="progresslabel">prabal (jee main)</div>
             <div id="prabaldisplay" class="progressval">-</div>
+            <div id="prabalphotoarea" class="adminphotoarea"></div>
           </div>
           <div class="progresscard">
             <div class="progresslabel">parikshit (jee adv)</div>
             <div id="parikshitdisplay" class="progressval">-</div>
+            <div id="parikshitphotoarea" class="adminphotoarea"></div>
           </div>
           <div class="progresscard">
             <div class="progresslabel">pyqs progress</div>
             <div id="pyqdisplay" class="progressval">-</div>
+            <div id="pyqphotoarea" class="adminphotoarea"></div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="photolightbox" class="photolightbox hidden" onclick="closephotolightbox()">
+    <div class="lightboxcontent" onclick="event.stopPropagation()">
+      <button type="button" class="lightboxclose" onclick="closephotolightbox()">&times;</button>
+      <img id="lightboximg" src="" alt="Full view">
     </div>
   </div>
 

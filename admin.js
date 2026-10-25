@@ -251,7 +251,53 @@ function renderprogressview() {
   findtag("prabaldisplay").innerText = (progressrecord && progressrecord.prabalprogress) || "not completed"
   findtag("parikshitdisplay").innerText = (progressrecord && progressrecord.parikshitprogress) || "not completed"
   findtag("pyqdisplay").innerText = (progressrecord && progressrecord.pyqsprogress) || "not completed"
+
+  renderadminphoto("dppphotoarea", progressrecord && progressrecord.dppphoto, "DPP Photo")
+  renderadminphoto("prabalphotoarea", progressrecord && progressrecord.prabalphoto, "Prabal Photo")
+  renderadminphoto("parikshitphotoarea", progressrecord && progressrecord.parikshitphoto, "Parikshit Photo")
+  renderadminphoto("pyqphotoarea", progressrecord && progressrecord.pyqsphoto, "PYQs Photo")
 }
+
+function renderadminphoto(containerId, photoData, label) {
+  let container = findtag(containerId)
+  if (!container) return
+  if (!photoData) {
+    container.innerHTML = "<div class='nophototext'>no photo attached</div>"
+    return
+  }
+  container.innerHTML = `
+    <div class="adminphotobox">
+      <img src="${photoData}" class="adminphotothumb" alt="${label}" onclick="openphotolightbox(this.src)">
+      <span class="clicktoexpandhint" onclick="openphotolightbox('${photoData}')">🔍 view full photo</span>
+    </div>
+  `
+}
+
+function openphotolightbox(src) {
+  let lightbox = findtag("photolightbox")
+  let lightboximg = findtag("lightboximg")
+  if (lightbox && lightboximg) {
+    lightboximg.src = src
+    lightbox.classList.remove("hidden")
+  }
+}
+
+function closephotolightbox() {
+  let lightbox = findtag("photolightbox")
+  let lightboximg = findtag("lightboximg")
+  if (lightbox) {
+    lightbox.classList.add("hidden")
+  }
+  if (lightboximg) {
+    lightboximg.src = ""
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closephotolightbox()
+  }
+})
 
 function backtostudents() {
   chosenstudent = ""

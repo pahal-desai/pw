@@ -39,10 +39,20 @@ create table if not exists studentprogress (
   prabalprogress text default '',
   parikshitprogress text default '',
   pyqsprogress text default '',
+  dppphoto text default '',
+  prabalphoto text default '',
+  parikshitphoto text default '',
+  pyqsphoto text default '',
   updatedtime timestamp with time zone default now()
 );
 
 alter table studentprogress disable row level security;
+
+-- If your table already exists, run sql.txt in Supabase SQL editor:
+alter table studentprogress add column if not exists dppphoto text default '';
+alter table studentprogress add column if not exists prabalphoto text default '';
+alter table studentprogress add column if not exists parikshitphoto text default '';
+alter table studentprogress add column if not exists pyqsphoto text default '';
 ```
 
 ---

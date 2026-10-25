@@ -624,3 +624,253 @@ body {
   }
 }
 
+/* ==========================================================================
+   Photo Upload & Lightbox Styles
+   ========================================================================== */
+.progressfieldgroup {
+  background: #191919;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.progressfieldgroup.photomissing {
+  border-color: #e03131 !important;
+  box-shadow: 0 0 0 2px rgba(224, 49, 49, 0.25);
+}
+
+.fieldheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.photostatusbadge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.photostatusbadge.badge-required {
+  background: rgba(224, 49, 49, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(224, 49, 49, 0.3);
+}
+
+.photostatusbadge.badge-success {
+  background: rgba(46, 160, 67, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.photouploadarea {
+  margin-top: 8px;
+}
+
+.photouploadbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #252525;
+  color: #58a6ff;
+  border: 1px dashed #444444;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photouploadbtn:hover {
+  background: #2e2e2e;
+  border-color: #58a6ff;
+  color: #79b8ff;
+}
+
+.photouploadbtn:active {
+  transform: scale(0.98);
+}
+
+.photopreviewbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #202020;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.photothumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #444444;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.photothumb:hover {
+  opacity: 0.85;
+  transform: scale(1.03);
+}
+
+.photopreviewinfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.photofilename {
+  font-size: 13px;
+  font-weight: 500;
+  color: #3fb950;
+}
+
+.photoactions {
+  display: flex;
+  gap: 6px;
+}
+
+.smallbtn {
+  background: #2c2c2c;
+  color: #eeeeee;
+  border: 1px solid #444444;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.smallbtn:hover {
+  background: #3a3a3a;
+}
+
+/* Admin portal photo styles */
+.adminphotoarea {
+  margin-top: 10px;
+  border-top: 1px solid #2e2e2e;
+  padding-top: 8px;
+}
+
+.adminphotobox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.adminphotothumb {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #3e3e3e;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.adminphotothumb:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.clicktoexpandhint {
+  font-size: 11px;
+  color: #58a6ff;
+  cursor: pointer;
+}
+
+.clicktoexpandhint:hover {
+  text-decoration: underline;
+}
+
+.nophototext {
+  font-size: 12px;
+  color: #777777;
+  font-style: italic;
+}
+
+/* Lightbox Modal */
+.photolightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100000;
+  padding: 16px;
+  cursor: zoom-out;
+  animation: fadeIn 0.2s ease;
+}
+
+.lightboxcontent {
+  position: relative;
+  max-width: 95vw;
+  max-height: 92vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: default;
+}
+
+.lightboxcontent img {
+  max-width: 95vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #333333;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9);
+}
+
+.lightboxclose {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  background: #333333;
+  color: #ffffff;
+  border: 2px solid #555555;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  z-index: 2;
+}
+
+.lightboxclose:hover {
+  background: #e03131;
+  border-color: #ff6b6b;
+  transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
