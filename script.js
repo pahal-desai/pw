@@ -189,11 +189,11 @@ function renderstudenttasks() {
   let html = ""
   for (let t of studenttasks) {
     let targetlabel = t.targettype === "student"
-      ? "👤 Assigned to you personally"
-      : "👥 Assigned to your batch (" + t.targetbatch + ")"
+      ? "Assigned to you personally"
+      : "Assigned to your batch (" + t.targetbatch + ")"
 
-    let duebadge = t.duedate ? "<span class='taskduebadge'>⏰ Due: " + t.duedate + "</span>" : ""
-    let authorbadge = "<span class='taskauthorbadge'>👨‍🏫 " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
+    let duebadge = t.duedate ? "<span class='taskduebadge'>Due: " + t.duedate + "</span>" : ""
+    let authorbadge = "<span class='taskauthorbadge'>Teacher: " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
 
     html += `
       <div class="taskcard">
@@ -469,7 +469,7 @@ function updatephotoui(key) {
     if (previewbox) previewbox.classList.remove("hidden")
     if (uploadbtnbox) uploadbtnbox.classList.add("hidden")
     if (badge) {
-      badge.innerText = "✓ Photo added"
+      badge.innerText = "Photo added"
       badge.className = "photostatusbadge badge-success"
     }
   } else {

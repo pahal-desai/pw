@@ -21,8 +21,28 @@
     </div>
     <p class="subtext">browse batches, view students, inspect photo proofs, and assign tasks to whole batches or individual students.</p>
 
-    <!-- Teacher Auth View (Login & Signup tabs just like student portal) -->
-    <div id="teacherauthbox" class="darkbox">
+    <!-- Master Admin Gatekeeper (Restricts access to Teacher Portal) -->
+    <div id="admingatebox" class="darkbox">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <h4 style="margin:0">Admin Portal Gatekeeper</h4>
+      </div>
+      <p class="subtext">This portal is strictly restricted to teachers and administrators. Enter the master admin password to unlock teacher login and account creation.</p>
+
+      <label class="inputlabel" for="masteradminpasswordinput">Master Admin Password</label>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <input id="masteradminpasswordinput" type="password" class="inputbox" placeholder="enter master admin password" style="margin:0;flex:1;min-width:200px" onkeydown="if(event.key==='Enter')verifymasterpassword()">
+        <button id="unlockgatebtn" onclick="verifymasterpassword()" class="btn loginbtn" style="min-width:120px">Unlock Portal</button>
+      </div>
+      <div id="gatestatusmsg" class="statusmsg"></div>
+    </div>
+
+    <!-- Teacher Auth View (Hidden until master admin password is confirmed) -->
+    <div id="teacherauthbox" class="darkbox hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #2e2e2e">
+        <span class="badge" style="background:#153322;color:#56d364;border:1px solid #238636;font-size:12px">Admin Portal Unlocked</span>
+        <button type="button" onclick="lockadminportal()" class="backbtn" style="margin:0;font-size:12px">Lock Portal</button>
+      </div>
+
       <div class="authtabs">
         <button id="tabteacherloginbtn" onclick="switchteacherauthmode('login')" class="authtabbtn authtabactive">log in</button>
         <button id="tabteachersignupbtn" onclick="switchteacherauthmode('signup')" class="authtabbtn">sign up</button>
@@ -38,7 +58,7 @@
       <input id="teachersubjectinput" class="inputbox" placeholder="e.g. Physics, Chemistry, Maths, Biology">
 
       <label id="teacherpinlabel" class="inputlabel" for="teacherpininput">Secret Pin / Password</label>
-      <input id="teacherpininput" type="password" class="inputbox" placeholder="e.g. 1234 or admin secret" onkeydown="if(event.key==='Enter')handleteacherauth()">
+      <input id="teacherpininput" type="password" class="inputbox" placeholder="e.g. 1234 or personal pin" onkeydown="if(event.key==='Enter')handleteacherauth()">
 
       <button id="teacherauthsubmitbtn" onclick="handleteacherauth()" class="btn loginbtn" style="width:100%;padding:10px;font-size:15px">Log in</button>
       <div id="teacherauthswitchbox" class="authswitchtext">
@@ -54,9 +74,10 @@
         <span class="teachersubjectbadge" id="loggedteachersubject">Subject: Physics</span>
       </div>
       <div class="teacheractions">
-        <button onclick="opentaskmodal('batch')" class="actionpillbtn"><span>➕</span> Assign Task</button>
-        <button onclick="opentaskslistmodal()" class="actionpillbtn actionpillbtn-secondary"><span>📋</span> View Tasks</button>
+        <button onclick="opentaskmodal('batch')" class="actionpillbtn">Assign Task</button>
+        <button onclick="opentaskslistmodal()" class="actionpillbtn actionpillbtn-secondary">View Tasks</button>
         <button onclick="doteacherlogout()" class="btn" style="padding:4px 10px;font-size:12px">Switch Account</button>
+        <button onclick="lockadminportal()" class="delbtn" style="padding:4px 10px;font-size:12px" title="Lock the admin portal completely">Lock Portal</button>
       </div>
     </div>
 
@@ -84,7 +105,7 @@
             <span class="subtext" style="display:block;margin:0">Selected Batch</span>
             <div style="display:flex;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap">
               <h3 id="currentbatchtitle" style="margin:0">Batch Name</h3>
-              <button onclick="opentaskmodal('batch', chosenbatch)" class="actionpillbtn"><span>➕</span> Assign Task to Batch</button>
+              <button onclick="opentaskmodal('batch', chosenbatch)" class="actionpillbtn">Assign Task to Batch</button>
             </div>
           </div>
           <span id="batchstudentcountlabel" class="subtext" style="margin:0">0 students</span>
@@ -103,7 +124,7 @@
             <span class="subtext" style="display:block;margin:0">Student Profile</span>
             <div class="profiletitle-row" style="display:flex;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap">
               <h3 id="currentstudenttitle" style="margin:0">Student Name</h3>
-              <button onclick="opentaskmodal('student', chosenbatch, chosenstudent)" class="actionpillbtn" style="padding:3px 9px;font-size:11px"><span>➕</span> Task Student</button>
+              <button onclick="opentaskmodal('student', chosenbatch, chosenstudent)" class="actionpillbtn" style="padding:3px 9px;font-size:11px">Task Student</button>
               <button id="delcurrentstudentbtn" onclick="deleteselectedstudent()" class="delbtn" style="padding:3px 9px;font-size:11px">delete student</button>
             </div>
           </div>

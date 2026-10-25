@@ -98,10 +98,13 @@ alter table studentprogress add column if not exists pyqsphoto text default '';
 
 ## 6. teacher admin portal & task assignment
 1. open `admin.html`:
-   - **teacher login / sign up**: teachers can log in or sign up just like students by providing:
+   - **master admin password gatekeeper**: before anyone can create a teacher account or log in, they must enter the master admin password (`topsecret`). This ensures students who open the page cannot create accounts or delete peers.
+   - **teacher login / sign up**: once unlocked with the master password, teachers log in or sign up with:
      - **teacher name**
      - **subject taught** (instead of batch)
-     - **secret pin / password**
+     - **personal pin / password**
+   - **server-side protection**: the backend worker requires the master admin password for `/api/teachersignup` and `/api/teacherlogin`, blocking unauthorized API calls.
+   - **lock portal**: teachers can click `🔒 Lock Portal` at any time to re-lock the gatekeeper.
 2. **batches directory (batch-first UI)**:
    - teachers see **batch names** instead of student names first.
    - search bar allows instant filtering by batch name.

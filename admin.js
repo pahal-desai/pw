@@ -5,6 +5,7 @@ const banhammerurl = "https://media1.tenor.com/m/QDcCvx0Tg5cAAAAC/thorban.gif"
 const preloadedbangif = new Image()
 preloadedbangif.src = banhammerurl
 
+let verifiedadminsecret = ""
 let teacherauthmode = "login"
 let activeteacher = null // { name, subject, pin }
 let allentries = []
@@ -19,6 +20,79 @@ let currenttasktarget = "batch" // 'batch' or 'student'
 
 function findtag(elemid) {
   return document.getElementById(elemid)
+}
+
+// -----------------------------------------------------------------------------
+// Master Admin Gatekeeper ("topsecret" protection before login/signup)
+// -----------------------------------------------------------------------------
+function initadminportal() {
+  let savedsecret = sessionStorage.getItem("pw_admin_secret")
+  if (savedsecret) {
+    verifiedadminsecret = savedsecret
+    let gate = findtag("admingatebox")
+    let auth = findtag("teacherauthbox")
+    if (gate) gate.classList.add("hidden")
+    if (auth) auth.classList.remove("hidden")
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initadminportal)
+} else {
+  initadminportal()
+}
+
+async function verifymasterpassword() {
+  let input = (findtag("masteradminpasswordinput").value || "").trim()
+  let statusmsg = findtag("gatestatusmsg")
+  let unlockbtn = findtag("unlockgatebtn")
+
+  if (!input) {
+    statusmsg.innerText = "Please enter the master admin password."
+    return
+  }
+
+  statusmsg.innerText = "Verifying master admin password..."
+  if (unlockbtn) unlockbtn.disabled = true
+
+  try {
+    let res = await fetch(workerurl + "/api/verifyadminpass", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ adminpassword: input })
+    })
+    let json = await res.json()
+    if (unlockbtn) unlockbtn.disabled = false
+
+    if (json.success) {
+      verifiedadminsecret = input
+      sessionStorage.setItem("pw_admin_secret", input)
+      statusmsg.innerText = ""
+      findtag("admingatebox").classList.add("hidden")
+      findtag("teacherauthbox").classList.remove("hidden")
+      let nameinput = findtag("teachernameinput")
+      if (nameinput) nameinput.focus()
+    } else {
+      statusmsg.innerText = json.error || "Incorrect master admin password. Access denied."
+    }
+  } catch (err) {
+    if (unlockbtn) unlockbtn.disabled = false
+    statusmsg.innerText = "Connection error while verifying password."
+  }
+}
+
+function lockadminportal() {
+  verifiedadminsecret = ""
+  sessionStorage.removeItem("pw_admin_secret")
+  doteacherlogout()
+  findtag("teacherauthbox").classList.add("hidden")
+  findtag("admingatebox").classList.remove("hidden")
+  let passinput = findtag("masteradminpasswordinput")
+  if (passinput) {
+    passinput.value = ""
+    passinput.focus()
+  }
+  findtag("gatestatusmsg").innerText = ""
 }
 
 // -----------------------------------------------------------------------------
@@ -54,13 +128,19 @@ function switchteacherauthmode(mode) {
 }
 
 async function handleteacherauth() {
+  if (!verifiedadminsecret) {
+    lockadminportal()
+    alert("Master admin password verification is required before accessing teacher portal.")
+    return
+  }
+
   let name = (findtag("teachernameinput").value || "").trim()
   let subject = (findtag("teachersubjectinput").value || "").trim()
   let pin = (findtag("teacherpininput").value || "").trim()
   let statusmsg = findtag("teacherauthstatus")
 
   if (!name || !subject || !pin) {
-    statusmsg.innerText = "Please enter teacher name, subject taught, and pin / password."
+    statusmsg.innerText = "Please enter teacher name, subject taught, and personal pin / password."
     return
   }
 
@@ -71,6 +151,7 @@ async function handleteacherauth() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          adminpassword: verifiedadminsecret,
           teachername: name,
           teachersubject: subject,
           teacherpin: pin
@@ -95,6 +176,7 @@ async function handleteacherauth() {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        adminpassword: verifiedadminsecret,
         teachername: name,
         teachersubject: subject,
         teacherpin: pin
@@ -138,14 +220,20 @@ function doteacherlogout() {
   chosensubject = ""
   chosenchapter = ""
 
-  findtag("teacherpininput").value = ""
+  let pininput = findtag("teacherpininput")
+  if (pininput) pininput.value = ""
   findtag("teacherprofilebar").classList.add("hidden")
   findtag("batchessection").classList.add("hidden")
   findtag("batchstudentssection").classList.add("hidden")
   findtag("subjectssection").classList.add("hidden")
   findtag("chapterssection").classList.add("hidden")
   findtag("progresssection").classList.add("hidden")
-  findtag("teacherauthbox").classList.remove("hidden")
+
+  if (verifiedadminsecret) {
+    findtag("teacherauthbox").classList.remove("hidden")
+  } else {
+    findtag("admingatebox").classList.remove("hidden")
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -250,7 +338,7 @@ function renderbatchesview() {
     html += "  <div class='cardinfo'>"
     html += "    <div class='cardtitle-row'>"
     html += "      <span class='cardtitle'>Batch: " + item.batch + "</span>"
-    html += "      <button type='button' class='actionpillbtn' onclick='event.stopPropagation();opentaskmodal(\"batch\", \"" + encodeURIComponent(item.batch) + "\")' title='Assign task to this entire batch'>➕ Assign Task</button>"
+    html += "      <button type='button' class='actionpillbtn' onclick='event.stopPropagation();opentaskmodal(\"batch\", \"" + encodeURIComponent(item.batch) + "\")' title='Assign task to this entire batch'>Assign Task</button>"
     html += "    </div>"
     html += "    <div class='cardmeta'>" + studentlabel + " enrolled</div>"
     html += "  </div>"
@@ -319,7 +407,7 @@ function renderbatchstudentsview() {
     html += "  <div class='cardinfo'>"
     html += "    <div class='cardtitle-row'>"
     html += "      <span class='cardtitle'>" + s.name + "</span>"
-    html += "      <button type='button' class='actionpillbtn' onclick='event.stopPropagation();opentaskmodal(\"student\", \"" + encodeURIComponent(s.batch) + "\", \"" + encodeURIComponent(s.name) + "\")' title='Assign task to this individual student'>➕ Task</button>"
+    html += "      <button type='button' class='actionpillbtn' onclick='event.stopPropagation();opentaskmodal(\"student\", \"" + encodeURIComponent(s.batch) + "\", \"" + encodeURIComponent(s.name) + "\")' title='Assign task to this individual student'>Task</button>"
     html += "      <button type='button' class='delbtn' onclick='deletestudent(event, \"" + encodeURIComponent(s.name) + "\", \"" + encodeURIComponent(s.batch) + "\")' title='delete student account'>delete</button>"
     html += "    </div>"
     html += "    <div class='cardmeta'>batch: " + s.batch + "</div>"
@@ -520,7 +608,7 @@ function renderadminphoto(containerId, photoData, label) {
   container.innerHTML = `
     <div class="adminphotobox">
       <img src="${photoData}" class="adminphotothumb" alt="${label}" onclick="openphotolightbox(this.src)">
-      <span class="clicktoexpandhint" onclick="openphotolightbox('${photoData}')">🔍 view full photo</span>
+      <span class="clicktoexpandhint" onclick="openphotolightbox('${photoData}')">view full photo</span>
     </div>
   `
 }
@@ -696,7 +784,7 @@ async function submittaskassignment() {
     submitbtn.disabled = false
 
     if (resjson.success) {
-      statusmsg.innerText = "✓ Task assigned successfully!"
+      statusmsg.innerText = "Task assigned successfully!"
       if (resjson.task) {
         alltasks.unshift(resjson.task)
       }
@@ -739,11 +827,11 @@ function rendertasksmodalcontent() {
   let html = ""
   for (let t of alltasks) {
     let targetlabel = t.targettype === "student"
-      ? "👤 Student: " + (t.targetstudent || "Individual") + " (" + t.targetbatch + ")"
-      : "👥 Entire Batch: " + t.targetbatch
+      ? "Student: " + (t.targetstudent || "Individual") + " (" + t.targetbatch + ")"
+      : "Entire Batch: " + t.targetbatch
 
-    let duebadge = t.duedate ? "<span class='taskduebadge'>⏰ Due: " + t.duedate + "</span>" : ""
-    let authorbadge = "<span class='taskauthorbadge'>👨‍🏫 " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
+    let duebadge = t.duedate ? "<span class='taskduebadge'>Due: " + t.duedate + "</span>" : ""
+    let authorbadge = "<span class='taskauthorbadge'>Teacher: " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
 
     html += `
       <div class="taskcard">
@@ -815,7 +903,7 @@ async function deletestudent(ev, stunameEnc, stubatchEnc) {
       body: JSON.stringify({
         teachername: teachername,
         teacherpin: teacherpin,
-        adminpassword: teacherpin,
+        adminpassword: verifiedadminsecret || teacherpin,
         studentname: stuname,
         studentbatch: stubatch
       })
