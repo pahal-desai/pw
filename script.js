@@ -4,17 +4,36 @@ let authmode = "login"
 let activestudent = null
 let recordsdata = []
 let studenttasks = []
+let studentsubmissions = []
 let activesubject = ""
 let activechapter = ""
+let activetaskid = null
+let tasksubmissionphotos = []
+
 let currentphotos = {
-  dpp: "",
-  prabal: "",
-  parikshit: "",
-  pyqs: ""
+  dpp: [],
+  prabal: [],
+  parikshit: [],
+  pyqs: []
 }
 
 function getnode(tagid) {
   return document.getElementById(tagid)
+}
+
+function parsephotolist(raw) {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw.filter(Boolean)
+  if (typeof raw !== "string") return []
+  let trimmed = raw.trim()
+  if (!trimmed) return []
+  if (trimmed.startsWith("[")) {
+    try {
+      let parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+    } catch (e) { }
+  }
+  return [trimmed]
 }
 
 function switchauthmode(targetmode) {
@@ -107,6 +126,7 @@ async function handleauthsubmit() {
       }
       recordsdata = logintxt.records || []
       studenttasks = logintxt.tasks || []
+      studentsubmissions = logintxt.submissions || []
 
       getnode("profilenamedisplay").innerText = activestudent.name
       getnode("profilebatchdisplay").innerText = "(" + activestudent.batch + ")"
@@ -125,9 +145,12 @@ function dologout() {
   activestudent = null
   recordsdata = []
   studenttasks = []
+  studentsubmissions = []
   activesubject = ""
   activechapter = ""
-  currentphotos = { dpp: "", prabal: "", parikshit: "", pyqs: "" }
+  activetaskid = null
+  tasksubmissionphotos = []
+  currentphotos = { dpp: [], prabal: [], parikshit: [], pyqs: [] }
   getnode("pupilpin").value = ""
   renderstudenttasks()
   getnode("subjectsview").classList.add("hidden")
@@ -137,6 +160,7 @@ function dologout() {
 }
 
 async function syncstudentdata() {
+  if (!activestudent) return false
   try {
     let fetchres = await fetch(workerbase + "/api/getstudent", {
       method: "POST",
@@ -151,6 +175,7 @@ async function syncstudentdata() {
     if (jsonres.success) {
       recordsdata = jsonres.records || []
       studenttasks = jsonres.tasks || []
+      studentsubmissions = jsonres.submissions || []
       renderstudenttasks()
       return true
     }
@@ -195,21 +220,232 @@ function renderstudenttasks() {
     let duebadge = t.duedate ? "<span class='taskduebadge'>Due: " + t.duedate + "</span>" : ""
     let authorbadge = "<span class='taskauthorbadge'>Teacher: " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
 
+    let submission = (studentsubmissions || []).find(s => String(s.taskid) === String(t.id))
+    let subStatusBadge = ""
+    let submissionPhotosHtml = ""
+    let subActionBtn = ""
+
+    if (submission) {
+      let subPhotos = parsephotolist(submission.submissionphotos)
+      subStatusBadge = `<span class='taskstatusbadge taskstatus-done'>Submitted (${subPhotos.length} photos)</span>`
+      subActionBtn = `<button type="button" class="actionpillbtn actionpillbtn-secondary" onclick="opensubmittaskmodal(${t.id})">Update Submission</button>`
+
+      let timeFormatted = submission.submittedat ? new Date(submission.submittedat).toLocaleDateString() : ""
+      let commentHtml = submission.submissioncomment ? `<div class="submissioncomment" style="margin-top:6px">Note: ${submission.submissioncomment}</div>` : ""
+
+      let thumbsHtml = ""
+      if (subPhotos.length > 0) {
+        thumbsHtml = "<div class='photogallery' style='margin-top:6px'>" + subPhotos.map((src, idx) => `
+          <div class="photothumbwrap">
+            <img src="${src}" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)">
+          </div>
+        `).join("") + "</div>"
+      }
+
+      submissionPhotosHtml = `
+        <div class="submissiondetails">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span style="font-size:12px;color:#3fb950;font-weight:600">Your Submission</span>
+            ${timeFormatted ? `<span class="submissiontime">${timeFormatted}</span>` : ""}
+          </div>
+          ${commentHtml}
+          ${thumbsHtml}
+        </div>
+      `
+    } else {
+      subStatusBadge = `<span class='taskstatusbadge taskstatus-pending'>Pending Submission</span>`
+      subActionBtn = `<button type="button" class="savebtn" style="padding:6px 14px;font-size:13px" onclick="opensubmittaskmodal(${t.id})">Submit Task Proof</button>`
+    }
+
     html += `
       <div class="taskcard">
         <div class="taskcardheader">
           <h4 class="tasktitle">${t.tasktitle}</h4>
+          ${subActionBtn}
         </div>
         <div class="taskbadges">
           <span class="tasktargetbadge">${targetlabel}</span>
           ${duebadge}
           ${authorbadge}
+          ${subStatusBadge}
         </div>
         ${t.taskdesc ? `<div class="taskdesc">${t.taskdesc}</div>` : ""}
+        ${submissionPhotosHtml}
       </div>
     `
   }
   taskslistnode.innerHTML = html
+}
+
+function opensubmittaskmodal(taskId) {
+  let task = studenttasks.find(t => String(t.id) === String(taskId))
+  if (!task) return
+
+  activetaskid = taskId
+  let modal = getnode("submittaskmodal")
+  let titleNode = getnode("submittaskmodaltitle")
+  let infoBox = getnode("submittaskinfobox")
+  let commentInput = getnode("tasksubmissioncommentinput")
+  let statusNode = getnode("submittaskstatus")
+
+  titleNode.innerText = "Submit Task: " + task.tasktitle
+  infoBox.innerHTML = `
+    <div class="taskinfotitle">${task.tasktitle}</div>
+    ${task.taskdesc ? `<div class="taskdesc" style="margin-bottom:6px">${task.taskdesc}</div>` : ""}
+    <div style="font-size:12px;color:#888888">
+      Teacher: ${task.teachername || "Teacher"}${task.teachersubject ? " (" + task.teachersubject + ")" : ""}
+      ${task.duedate ? " • Due: " + task.duedate : ""}
+    </div>
+  `
+
+  let existingSub = (studentsubmissions || []).find(s => String(s.taskid) === String(taskId))
+  if (existingSub) {
+    tasksubmissionphotos = parsephotolist(existingSub.submissionphotos)
+    commentInput.value = existingSub.submissioncomment || ""
+  } else {
+    tasksubmissionphotos = []
+    commentInput.value = ""
+  }
+
+  statusNode.innerText = ""
+  updatetasksubmissiongallery()
+  modal.classList.remove("hidden")
+}
+
+function closesubmittaskmodal() {
+  let modal = getnode("submittaskmodal")
+  if (modal) modal.classList.add("hidden")
+  activetaskid = null
+  tasksubmissionphotos = []
+}
+
+function triggertaskphotoupload() {
+  let input = getnode("tasksubmissionfileinput")
+  if (input) input.click()
+}
+
+async function handletaskphotosupload(files) {
+  if (!files || files.length === 0) return
+  let fileList = Array.from(files).filter(f => f.type && f.type.startsWith("image/"))
+  if (fileList.length === 0) {
+    alert("Please select valid image files.")
+    return
+  }
+
+  let statusNode = getnode("submittaskstatus")
+  statusNode.style.color = "#58a6ff"
+  statusNode.innerText = "Processing " + fileList.length + " image(s)..."
+
+  try {
+    for (let f of fileList) {
+      let dataUrl = await compressimage(f, 1200, 0.75)
+      tasksubmissionphotos.push(dataUrl)
+    }
+    statusNode.innerText = ""
+    updatetasksubmissiongallery()
+  } catch (err) {
+    alert("Error processing images: " + err.message)
+    statusNode.innerText = ""
+  }
+
+  let input = getnode("tasksubmissionfileinput")
+  if (input) input.value = ""
+}
+
+function removetasksubmissionphoto(index) {
+  if (tasksubmissionphotos && tasksubmissionphotos.length > index) {
+    tasksubmissionphotos.splice(index, 1)
+    updatetasksubmissiongallery()
+  }
+}
+
+function updatetasksubmissiongallery() {
+  let gallery = getnode("tasksubmissiongallery")
+  let uploadbtn = getnode("taskuploadbtn")
+  if (!gallery) return
+
+  if (uploadbtn) {
+    uploadbtn.innerText = tasksubmissionphotos.length > 0 ? "+ Add More Photos" : "+ Upload Photos (Select Multiple)"
+  }
+
+  if (tasksubmissionphotos.length === 0) {
+    gallery.innerHTML = "<div class='subtext' style='margin-top:6px'>No photos attached yet. Attach at least one photo.</div>"
+    return
+  }
+
+  let html = ""
+  tasksubmissionphotos.forEach((src, idx) => {
+    html += `
+      <div class="photothumbwrap">
+        <img src="${src}" alt="Submission photo ${idx + 1}" onclick="openphotolightbox(this.src)">
+        <button type="button" class="thumbdelbtn" onclick="removetasksubmissionphoto(${idx})" title="Remove photo">&times;</button>
+      </div>
+    `
+  })
+  gallery.innerHTML = html
+}
+
+async function submittaskproof() {
+  if (!activetaskid) return
+
+  let statusNode = getnode("submittaskstatus")
+  let submitBtn = getnode("submittaskbtn")
+  let commentInput = getnode("tasksubmissioncommentinput")
+
+  if (tasksubmissionphotos.length === 0) {
+    statusNode.style.color = "#ff6b6b"
+    statusNode.innerText = "Please attach at least one photo of your work before submitting."
+    alert("Please attach at least one photo proof for this task.")
+    return
+  }
+
+  statusNode.style.color = "#58a6ff"
+  statusNode.innerText = "Submitting task proof..."
+  submitBtn.disabled = true
+
+  try {
+    let res = await fetch(workerbase + "/api/submittask", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        taskid: activetaskid,
+        studentname: activestudent.name,
+        studentbatch: activestudent.batch,
+        studentpin: activestudent.pin,
+        photos: tasksubmissionphotos,
+        comment: commentInput.value.trim()
+      })
+    })
+
+    let resJson = await res.json()
+    submitBtn.disabled = false
+
+    if (resJson.success) {
+      statusNode.style.color = "#3fb950"
+      statusNode.innerText = "Task proof submitted successfully!"
+
+      if (resJson.submission) {
+        let existingIdx = studentsubmissions.findIndex(s => String(s.taskid) === String(activetaskid))
+        if (existingIdx >= 0) {
+          studentsubmissions[existingIdx] = resJson.submission
+        } else {
+          studentsubmissions.unshift(resJson.submission)
+        }
+      }
+
+      renderstudenttasks()
+      setTimeout(() => {
+        closesubmittaskmodal()
+      }, 1000)
+    } else {
+      statusNode.style.color = "#ff6b6b"
+      statusNode.innerText = resJson.error || "Failed to submit task proof."
+    }
+  } catch (err) {
+    submitBtn.disabled = false
+    statusNode.style.color = "#ff6b6b"
+    statusNode.innerText = "Connection error while submitting task."
+  }
 }
 
 function filtersubjects() {
@@ -401,16 +637,16 @@ function showprogresspage(chapname) {
   getnode("prabalinput").value = (targetrow && targetrow.prabalprogress) || ""
   getnode("parikshitinput").value = (targetrow && targetrow.parikshitprogress) || ""
   getnode("pyqinput").value = (targetrow && targetrow.pyqsprogress) || ""
-  
+
   let savemsg = getnode("progressstatus")
   savemsg.style.color = "#58a6ff"
   savemsg.innerText = ""
 
-  // Load photos from target row
-  currentphotos.dpp = (targetrow && targetrow.dppphoto) || ""
-  currentphotos.prabal = (targetrow && targetrow.prabalphoto) || ""
-  currentphotos.parikshit = (targetrow && targetrow.parikshitphoto) || ""
-  currentphotos.pyqs = (targetrow && targetrow.pyqsphoto) || ""
+  // Load photos from target row (support multiple photos)
+  currentphotos.dpp = parsephotolist(targetrow && targetrow.dppphoto)
+  currentphotos.prabal = parsephotolist(targetrow && targetrow.prabalphoto)
+  currentphotos.parikshit = parsephotolist(targetrow && targetrow.parikshitphoto)
+  currentphotos.pyqs = parsephotolist(targetrow && targetrow.pyqsphoto)
 
   for (let key of ["dpp", "prabal", "parikshit", "pyqs"]) {
     updatephotoui(key)
@@ -426,60 +662,79 @@ function triggerphotoupload(key) {
   }
 }
 
-async function handlephotoupload(key, file) {
-  if (!file) return
-  if (!file.type || !file.type.startsWith("image/")) {
-    alert("Please select a valid image file.")
+async function handlephotoupload(key, files) {
+  if (!files || files.length === 0) return
+  let fileList = Array.from(files).filter(f => f.type && f.type.startsWith("image/"))
+  if (fileList.length === 0) {
+    alert("Please select valid image files.")
     return
   }
 
   let savemsg = getnode("progressstatus")
   savemsg.style.color = "#58a6ff"
-  savemsg.innerText = "Processing image..."
+  savemsg.innerText = "Processing " + fileList.length + " image(s)..."
 
   try {
-    let dataUrl = await compressimage(file, 1200, 0.75)
-    currentphotos[key] = dataUrl
+    for (let f of fileList) {
+      let dataUrl = await compressimage(f, 1200, 0.75)
+      currentphotos[key].push(dataUrl)
+    }
     updatephotoui(key)
     let grp = getnode(key + "group")
     if (grp) grp.classList.remove("photomissing")
     savemsg.innerText = ""
   } catch (err) {
-    alert("Error processing image: " + err.message)
+    alert("Error processing images: " + err.message)
     savemsg.innerText = ""
+  }
+
+  let fileinput = getnode(key + "fileinput")
+  if (fileinput) fileinput.value = ""
+}
+
+function removephoto(key, index) {
+  if (currentphotos[key] && currentphotos[key].length > index) {
+    currentphotos[key].splice(index, 1)
+    updatephotoui(key)
   }
 }
 
-function removephoto(key) {
-  currentphotos[key] = ""
-  let fileinput = getnode(key + "fileinput")
-  if (fileinput) fileinput.value = ""
-  updatephotoui(key)
-}
-
 function updatephotoui(key) {
-  let hasPhoto = !!currentphotos[key]
-  let previewbox = getnode(key + "previewbox")
-  let uploadbtnbox = getnode(key + "uploadbtnbox")
-  let previewimg = getnode(key + "previewimg")
+  let photos = currentphotos[key] || []
+  let hasPhotos = photos.length > 0
+  let gallery = getnode(key + "gallery")
+  let uploadbtn = getnode(key + "uploadbtn")
   let badge = getnode(key + "photobadge")
 
-  if (hasPhoto) {
-    if (previewimg) previewimg.src = currentphotos[key]
-    if (previewbox) previewbox.classList.remove("hidden")
-    if (uploadbtnbox) uploadbtnbox.classList.add("hidden")
-    if (badge) {
-      badge.innerText = "Photo added"
+  if (badge) {
+    if (hasPhotos) {
+      badge.innerText = photos.length + (photos.length === 1 ? " photo attached" : " photos attached")
       badge.className = "photostatusbadge badge-success"
-    }
-  } else {
-    if (previewimg) previewimg.src = ""
-    if (previewbox) previewbox.classList.add("hidden")
-    if (uploadbtnbox) uploadbtnbox.classList.remove("hidden")
-    if (badge) {
-      badge.innerText = "Photo required *"
+    } else {
+      badge.innerText = "Photos required *"
       badge.className = "photostatusbadge badge-required"
     }
+  }
+
+  if (uploadbtn) {
+    uploadbtn.innerText = hasPhotos ? "+ Add More Photos" : "Attach " + key.toUpperCase() + " Photos (Required)"
+  }
+
+  if (gallery) {
+    if (!hasPhotos) {
+      gallery.innerHTML = ""
+      return
+    }
+    let html = ""
+    photos.forEach((src, idx) => {
+      html += `
+        <div class="photothumbwrap">
+          <img src="${src}" alt="${key} photo ${idx + 1}" onclick="openphotolightbox(this.src)">
+          <button type="button" class="thumbdelbtn" onclick="removephoto('${key}', ${idx})" title="Remove photo">&times;</button>
+        </div>
+      `
+    })
+    gallery.innerHTML = html
   }
 }
 
@@ -542,6 +797,7 @@ function closephotolightbox() {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closephotolightbox()
+    closesubmittaskmodal()
   }
 })
 
@@ -552,17 +808,17 @@ async function savechapterprogress() {
   let pyqbox = getnode("pyqinput").value.trim()
   let savemsg = getnode("progressstatus")
 
-  // Strict Validation: Require all 4 photos before submission
+  // Strict Validation: Require at least one photo for all 4 sections
   let missing = []
-  if (!currentphotos.dpp) missing.push("DPP")
-  if (!currentphotos.prabal) missing.push("Prabal")
-  if (!currentphotos.parikshit) missing.push("Parikshit")
-  if (!currentphotos.pyqs) missing.push("PYQs")
+  if (!currentphotos.dpp || currentphotos.dpp.length === 0) missing.push("DPP")
+  if (!currentphotos.prabal || currentphotos.prabal.length === 0) missing.push("Prabal")
+  if (!currentphotos.parikshit || currentphotos.parikshit.length === 0) missing.push("Parikshit")
+  if (!currentphotos.pyqs || currentphotos.pyqs.length === 0) missing.push("PYQs")
 
   for (let key of ["dpp", "prabal", "parikshit", "pyqs"]) {
     let grp = getnode(key + "group")
     if (grp) {
-      if (!currentphotos[key]) {
+      if (!currentphotos[key] || currentphotos[key].length === 0) {
         grp.classList.add("photomissing")
       } else {
         grp.classList.remove("photomissing")
@@ -597,10 +853,10 @@ async function savechapterprogress() {
         prabalprogress: prabalbox,
         parikshitprogress: parikshitbox,
         pyqsprogress: pyqbox,
-        dppphoto: currentphotos.dpp,
-        prabalphoto: currentphotos.prabal,
-        parikshitphoto: currentphotos.parikshit,
-        pyqsphoto: currentphotos.pyqs
+        dppphoto: JSON.stringify(currentphotos.dpp),
+        prabalphoto: JSON.stringify(currentphotos.prabal),
+        parikshitphoto: JSON.stringify(currentphotos.parikshit),
+        pyqsphoto: JSON.stringify(currentphotos.pyqs)
       })
     })
     let resdata = await saveres.json()

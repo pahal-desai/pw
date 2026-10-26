@@ -136,26 +136,17 @@
         <div class="progressfieldgroup" id="dppgroup">
           <div class="fieldheader">
             <label class="inputlabel" for="dppinput">DPP progress</label>
-            <span class="photostatusbadge badge-required" id="dppphotobadge">Photo required *</span>
+            <span class="photostatusbadge badge-required" id="dppphotobadge">Photos required *</span>
           </div>
           <input id="dppinput" class="inputbox" placeholder="e.g. dpp 1-5 completed / 15 of 20">
           <div class="photouploadarea">
-            <input type="file" id="dppfileinput" accept="image/*" class="hidden" onchange="handlephotoupload('dpp', this.files[0])">
+            <input type="file" id="dppfileinput" accept="image/*" multiple class="hidden" onchange="handlephotoupload('dpp', this.files)">
             <div id="dppuploadbtnbox">
-              <button type="button" onclick="triggerphotoupload('dpp')" class="photouploadbtn">
-                Attach DPP Photo (Required)
+              <button type="button" onclick="triggerphotoupload('dpp')" class="photouploadbtn" id="dppuploadbtn">
+                Attach DPP Photos (Required)
               </button>
             </div>
-            <div id="dpppreviewbox" class="photopreviewbox hidden">
-              <img id="dpppreviewimg" class="photothumb" alt="DPP Photo" onclick="openphotolightbox(this.src)">
-              <div class="photopreviewinfo">
-                <span class="photofilename">DPP Photo attached</span>
-                <div class="photoactions">
-                  <button type="button" onclick="triggerphotoupload('dpp')" class="smallbtn">Change</button>
-                  <button type="button" onclick="removephoto('dpp')" class="smallbtn delbtn">Remove</button>
-                </div>
-              </div>
-            </div>
+            <div id="dppgallery" class="photogallery"></div>
           </div>
         </div>
 
@@ -163,26 +154,17 @@
         <div class="progressfieldgroup" id="prabalgroup">
           <div class="fieldheader">
             <label class="inputlabel" for="prabalinput">Prabal (jee main) progress</label>
-            <span class="photostatusbadge badge-required" id="prabalphotobadge">Photo required *</span>
+            <span class="photostatusbadge badge-required" id="prabalphotobadge">Photos required *</span>
           </div>
           <input id="prabalinput" class="inputbox" placeholder="e.g. 25 of 30 questions done">
           <div class="photouploadarea">
-            <input type="file" id="prabalfileinput" accept="image/*" class="hidden" onchange="handlephotoupload('prabal', this.files[0])">
+            <input type="file" id="prabalfileinput" accept="image/*" multiple class="hidden" onchange="handlephotoupload('prabal', this.files)">
             <div id="prabaluploadbtnbox">
-              <button type="button" onclick="triggerphotoupload('prabal')" class="photouploadbtn">
-                Attach Prabal Photo (Required)
+              <button type="button" onclick="triggerphotoupload('prabal')" class="photouploadbtn" id="prabaluploadbtn">
+                Attach Prabal Photos (Required)
               </button>
             </div>
-            <div id="prabalpreviewbox" class="photopreviewbox hidden">
-              <img id="prabalpreviewimg" class="photothumb" alt="Prabal Photo" onclick="openphotolightbox(this.src)">
-              <div class="photopreviewinfo">
-                <span class="photofilename">Prabal Photo attached</span>
-                <div class="photoactions">
-                  <button type="button" onclick="triggerphotoupload('prabal')" class="smallbtn">Change</button>
-                  <button type="button" onclick="removephoto('prabal')" class="smallbtn delbtn">Remove</button>
-                </div>
-              </div>
-            </div>
+            <div id="prabalgallery" class="photogallery"></div>
           </div>
         </div>
 
@@ -190,26 +172,17 @@
         <div class="progressfieldgroup" id="parikshitgroup">
           <div class="fieldheader">
             <label class="inputlabel" for="parikshitinput">Parikshit (jee adv) progress</label>
-            <span class="photostatusbadge badge-required" id="parikshitphotobadge">Photo required *</span>
+            <span class="photostatusbadge badge-required" id="parikshitphotobadge">Photos required *</span>
           </div>
           <input id="parikshitinput" class="inputbox" placeholder="e.g. level 1 finished">
           <div class="photouploadarea">
-            <input type="file" id="parikshitfileinput" accept="image/*" class="hidden" onchange="handlephotoupload('parikshit', this.files[0])">
+            <input type="file" id="parikshitfileinput" accept="image/*" multiple class="hidden" onchange="handlephotoupload('parikshit', this.files)">
             <div id="parikshituploadbtnbox">
-              <button type="button" onclick="triggerphotoupload('parikshit')" class="photouploadbtn">
-                Attach Parikshit Photo (Required)
+              <button type="button" onclick="triggerphotoupload('parikshit')" class="photouploadbtn" id="parikshituploadbtn">
+                Attach Parikshit Photos (Required)
               </button>
             </div>
-            <div id="parikshitpreviewbox" class="photopreviewbox hidden">
-              <img id="parikshitpreviewimg" class="photothumb" alt="Parikshit Photo" onclick="openphotolightbox(this.src)">
-              <div class="photopreviewinfo">
-                <span class="photofilename">Parikshit Photo attached</span>
-                <div class="photoactions">
-                  <button type="button" onclick="triggerphotoupload('parikshit')" class="smallbtn">Change</button>
-                  <button type="button" onclick="removephoto('parikshit')" class="smallbtn delbtn">Remove</button>
-                </div>
-              </div>
-            </div>
+            <div id="parikshitgallery" class="photogallery"></div>
           </div>
         </div>
 
@@ -217,26 +190,17 @@
         <div class="progressfieldgroup" id="pyqsgroup">
           <div class="fieldheader">
             <label class="inputlabel" for="pyqinput">PYQs progress</label>
-            <span class="photostatusbadge badge-required" id="pyqsphotobadge">Photo required *</span>
+            <span class="photostatusbadge badge-required" id="pyqsphotobadge">Photos required *</span>
           </div>
           <input id="pyqinput" class="inputbox" placeholder="e.g. 2019-2024 solved">
           <div class="photouploadarea">
-            <input type="file" id="pyqsfileinput" accept="image/*" class="hidden" onchange="handlephotoupload('pyqs', this.files[0])">
+            <input type="file" id="pyqsfileinput" accept="image/*" multiple class="hidden" onchange="handlephotoupload('pyqs', this.files)">
             <div id="pyqsuploadbtnbox">
-              <button type="button" onclick="triggerphotoupload('pyqs')" class="photouploadbtn">
-                Attach PYQs Photo (Required)
+              <button type="button" onclick="triggerphotoupload('pyqs')" class="photouploadbtn" id="pyqsuploadbtn">
+                Attach PYQs Photos (Required)
               </button>
             </div>
-            <div id="pyqspreviewbox" class="photopreviewbox hidden">
-              <img id="pyqspreviewimg" class="photothumb" alt="PYQs Photo" onclick="openphotolightbox(this.src)">
-              <div class="photopreviewinfo">
-                <span class="photofilename">PYQs Photo attached</span>
-                <div class="photoactions">
-                  <button type="button" onclick="triggerphotoupload('pyqs')" class="smallbtn">Change</button>
-                  <button type="button" onclick="removephoto('pyqs')" class="smallbtn delbtn">Remove</button>
-                </div>
-              </div>
-            </div>
+            <div id="pyqsgallery" class="photogallery"></div>
           </div>
         </div>
 
@@ -245,6 +209,41 @@
           <span id="progressstatus" class="statusmsg"></span>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT TASK SUBMISSION MODAL -->
+<div id="submittaskmodal" class="modaloverlay hidden" onclick="closesubmittaskmodal()">
+  <div class="modalbox" onclick="event.stopPropagation()">
+    <div class="modalheader">
+      <div>
+        <h4 style="margin:0" id="submittaskmodaltitle">Submit Task</h4>
+        <span id="submittaskmodalsubtitle" class="subtext">Upload photo proofs for this task</span>
+      </div>
+      <button type="button" class="modalclose" onclick="closesubmittaskmodal()">&times;</button>
+    </div>
+    <div class="modalbody">
+      <div id="submittaskinfobox" class="taskinfobox"></div>
+
+      <label class="inputlabel">Proof Photos (Multiple Photos Allowed, Required *)</label>
+      <input type="file" id="tasksubmissionfileinput" accept="image/*" multiple class="hidden" onchange="handletaskphotosupload(this.files)">
+
+      <div class="photouploadarea" style="margin-top:6px">
+        <button type="button" onclick="triggertaskphotoupload()" class="photouploadbtn" id="taskuploadbtn">
+          + Upload Photos (Select Multiple)
+        </button>
+        <div id="tasksubmissiongallery" class="photogallery"></div>
+      </div>
+
+      <label class="inputlabel" for="tasksubmissioncommentinput" style="margin-top:14px">Student Note / Comment (Optional)</label>
+      <textarea id="tasksubmissioncommentinput" class="inputbox" rows="2" style="resize:vertical;font-family:inherit" placeholder="e.g. Solved all questions from exercise 2, see attached photos"></textarea>
+
+      <div id="submittaskstatus" class="statusmsg"></div>
+    </div>
+    <div class="modalfooter">
+      <button type="button" onclick="closesubmittaskmodal()" class="btn">Cancel</button>
+      <button type="button" onclick="submittaskproof()" class="savebtn" id="submittaskbtn">Submit Proof</button>
     </div>
   </div>
 </div>

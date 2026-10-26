@@ -11,6 +11,7 @@ let activeteacher = null // { name, subject, pin }
 let allentries = []
 let allaccounts = []
 let alltasks = []
+let allsubmissions = []
 
 let chosenbatch = ""
 let chosenstudent = ""
@@ -20,6 +21,21 @@ let currenttasktarget = "batch" // 'batch' or 'student'
 
 function findtag(elemid) {
   return document.getElementById(elemid)
+}
+
+function parsephotolist(raw) {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw.filter(Boolean)
+  if (typeof raw !== "string") return []
+  let trimmed = raw.trim()
+  if (!trimmed) return []
+  if (trimmed.startsWith("[")) {
+    try {
+      let parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+    } catch (e) { }
+  }
+  return [trimmed]
 }
 
 // -----------------------------------------------------------------------------
@@ -192,6 +208,7 @@ async function handleteacherauth() {
       allentries = authjson.records || []
       allaccounts = authjson.accounts || []
       alltasks = authjson.tasks || []
+      allsubmissions = authjson.submissions || []
 
       statusmsg.innerText = ""
       findtag("loggedteachername").innerText = activeteacher.name
@@ -215,6 +232,7 @@ function doteacherlogout() {
   allentries = []
   allaccounts = []
   alltasks = []
+  allsubmissions = []
   chosenbatch = ""
   chosenstudent = ""
   chosensubject = ""
@@ -601,16 +619,26 @@ function renderprogressview() {
 function renderadminphoto(containerId, photoData, label) {
   let container = findtag(containerId)
   if (!container) return
-  if (!photoData) {
+  let photos = parsephotolist(photoData)
+  if (!photos || photos.length === 0) {
     container.innerHTML = "<div class='nophototext'>no photo attached</div>"
     return
   }
-  container.innerHTML = `
+  let countLabel = photos.length === 1 ? "1 photo attached" : photos.length + " photos attached"
+  let html = `
     <div class="adminphotobox">
-      <img src="${photoData}" class="adminphotothumb" alt="${label}" onclick="openphotolightbox(this.src)">
-      <span class="clicktoexpandhint" onclick="openphotolightbox('${photoData}')">view full photo</span>
+      <span style="font-size:11px;color:#3fb950;font-weight:600;margin-bottom:4px">${countLabel}</span>
+      <div class="adminphotogrid">
+  `
+  photos.forEach((src, idx) => {
+    html += `<img src="${src}" class="adminphotothumbchip" alt="${label} ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to enlarge">`
+  })
+  html += `
+      </div>
+      <span class="clicktoexpandhint" onclick="openphotolightbox('${photos[0]}')">click any photo to enlarge</span>
     </div>
   `
+  container.innerHTML = html
 }
 
 function openphotolightbox(src) {
@@ -638,6 +666,7 @@ document.addEventListener("keydown", (e) => {
     closephotolightbox()
     closetaskmodal()
     closetaskslistmodal()
+    closeviewsubmissionsmodal()
   }
 })
 
@@ -833,16 +862,26 @@ function rendertasksmodalcontent() {
     let duebadge = t.duedate ? "<span class='taskduebadge'>Due: " + t.duedate + "</span>" : ""
     let authorbadge = "<span class='taskauthorbadge'>Teacher: " + (t.teachername || "Teacher") + (t.teachersubject ? " (" + t.teachersubject + ")" : "") + "</span>"
 
+    let subs = (allsubmissions || []).filter(s => String(s.taskid) === String(t.id))
+    let subsCount = subs.length
+    let subsBadge = subsCount > 0
+      ? `<span class="taskstatusbadge taskstatus-done">${subsCount} ${subsCount === 1 ? "submission" : "submissions"}</span>`
+      : `<span class="taskstatusbadge taskstatus-pending">0 submissions</span>`
+
     html += `
       <div class="taskcard">
         <div class="taskcardheader">
           <h4 class="tasktitle">${t.tasktitle}</h4>
-          <button type="button" class="delbtn" onclick="deletetaskitem(${t.id})">Delete</button>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button type="button" class="actionpillbtn" onclick="openviewsubmissionsmodal(${t.id})">Submissions (${subsCount})</button>
+            <button type="button" class="delbtn" onclick="deletetaskitem(${t.id})">Delete</button>
+          </div>
         </div>
         <div class="taskbadges">
           <span class="tasktargetbadge">${targetlabel}</span>
           ${duebadge}
           ${authorbadge}
+          ${subsBadge}
         </div>
         ${t.taskdesc ? `<div class="taskdesc">${t.taskdesc}</div>` : ""}
       </div>
@@ -850,6 +889,79 @@ function rendertasksmodalcontent() {
   }
 
   listcontainer.innerHTML = html
+}
+
+async function openviewsubmissionsmodal(taskId) {
+  let task = alltasks.find(t => String(t.id) === String(taskId))
+  if (!task) return
+
+  let modal = findtag("tasksubmissionsmodal")
+  findtag("submissionsmodaltasktitle").innerText = task.tasktitle
+  let targetText = task.targettype === "student"
+    ? "Target: Student " + task.targetstudent + " (" + task.targetbatch + ")"
+    : "Target: Batch " + task.targetbatch
+  findtag("submissionsmodaltasktarget").innerText = targetText
+
+  let listContainer = findtag("tasksubmissionslist")
+  listContainer.innerHTML = "<div class='subtext' style='padding:16px 0;text-align:center'>Loading submissions...</div>"
+  modal.classList.remove("hidden")
+
+  // Fetch fresh submissions from server
+  try {
+    let res = await fetch(workerurl + "/api/gettasksubmissions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ taskid: taskId })
+    })
+    let resJson = await res.json()
+    if (resJson.success) {
+      allsubmissions = allsubmissions.filter(s => String(s.taskid) !== String(taskId)).concat(resJson.submissions || [])
+    }
+  } catch (e) { }
+
+  let taskSubs = (allsubmissions || []).filter(s => String(s.taskid) === String(taskId))
+  findtag("submissionsmodalcount").innerText = taskSubs.length + (taskSubs.length === 1 ? " submission" : " submissions")
+
+  if (taskSubs.length === 0) {
+    listContainer.innerHTML = "<div class='subtext' style='padding:24px 0;text-align:center'>No student submissions received for this task yet.</div>"
+    return
+  }
+
+  let html = ""
+  for (let sub of taskSubs) {
+    let photos = parsephotolist(sub.submissionphotos)
+    let timeStr = sub.submittedat ? new Date(sub.submittedat).toLocaleString() : ""
+    let commentHtml = sub.submissioncomment ? `<div class="submissioncomment">${sub.submissioncomment}</div>` : ""
+
+    let photoChipsHtml = ""
+    if (photos.length > 0) {
+      photoChipsHtml = `
+        <div style="margin-top:6px">
+          <span style="font-size:11px;color:#888888;display:block;margin-bottom:4px">Submitted Photos (${photos.length}):</span>
+          <div class="adminphotogrid">
+            ${photos.map((src, idx) => `<img src="${src}" class="adminphotothumbchip" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to view photo ${idx + 1}">`).join("")}
+          </div>
+        </div>
+      `
+    }
+
+    html += `
+      <div class="submissioncard">
+        <div class="submissionheader">
+          <span class="submissionstudent">${sub.studentname} (${sub.studentbatch})</span>
+          <span class="submissiontime">${timeStr}</span>
+        </div>
+        ${commentHtml}
+        ${photoChipsHtml}
+      </div>
+    `
+  }
+  listContainer.innerHTML = html
+}
+
+function closeviewsubmissionsmodal() {
+  let modal = findtag("tasksubmissionsmodal")
+  if (modal) modal.classList.add("hidden")
 }
 
 async function deletetaskitem(taskId) {

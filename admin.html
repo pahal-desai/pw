@@ -247,6 +247,28 @@
     </div>
   </div>
 
+  <!-- VIEW TASK SUBMISSIONS MODAL (For Teachers to inspect student photo submissions) -->
+  <div id="tasksubmissionsmodal" class="modaloverlay hidden" onclick="closeviewsubmissionsmodal()">
+    <div class="modalbox" style="max-width:680px" onclick="event.stopPropagation()">
+      <div class="modalheader">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <h4 style="margin:0" id="submissionsmodaltasktitle">Task Submissions</h4>
+            <span id="submissionsmodalcount" class="badge">0 submissions</span>
+          </div>
+          <span id="submissionsmodaltasktarget" class="subtext" style="display:block;margin-top:2px">Target</span>
+        </div>
+        <button type="button" class="modalclose" onclick="closeviewsubmissionsmodal()">&times;</button>
+      </div>
+      <div class="modalbody">
+        <div id="tasksubmissionslist"></div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" onclick="closeviewsubmissionsmodal()" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Full Photo Lightbox -->
   <div id="photolightbox" class="photolightbox hidden" onclick="closephotolightbox()">
     <div class="lightboxcontent" onclick="event.stopPropagation()">
