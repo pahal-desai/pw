@@ -534,6 +534,27 @@ async function addnewsubject() {
   let newsubval = inputbox.value.trim()
   if (!newsubval) return
 
+  // Optimistic UI: Immediately display subject with 0ms latency
+  let placeholderRecord = {
+    id: "temp_" + Date.now(),
+    studentname: activestudent.name,
+    studentbatch: activestudent.batch,
+    studentpin: activestudent.pin,
+    subjectname: newsubval,
+    chaptername: "",
+    dppprogress: "",
+    prabalprogress: "",
+    parikshitprogress: "",
+    pyqsprogress: "",
+    dppphoto: "[]",
+    prabalphoto: "[]",
+    parikshitphoto: "[]",
+    pyqsphoto: "[]"
+  }
+  recordsdata.push(placeholderRecord)
+  cancelsubjectinput()
+  showsubjectspage()
+
   try {
     let postres = await fetch(workerbase + "/api/addsubject", {
       method: "POST",
@@ -546,16 +567,13 @@ async function addnewsubject() {
       })
     })
     let resdata = await postres.json()
-    if (resdata.success) {
-      cancelsubjectinput()
-      if (resdata.records && resdata.records.length > 0) {
-        recordsdata.push(...resdata.records)
-      }
-      showsubjectspage()
-      syncstudentdata()
+    if (resdata.success && resdata.records && resdata.records.length > 0) {
+      placeholderRecord.id = resdata.records[0].id
     }
   } catch (err) {
-    alert("error adding subject")
+    recordsdata = recordsdata.filter(r => r !== placeholderRecord)
+    showsubjectspage()
+    alert("Error saving subject to server")
   }
 }
 
@@ -628,6 +646,27 @@ async function addnewchapter() {
   let newchapval = chapinput.value.trim()
   if (!newchapval) return
 
+  // Optimistic UI: Immediately show new chapter and open progress view in 0ms
+  let newRecord = {
+    id: "temp_" + Date.now(),
+    studentname: activestudent.name,
+    studentbatch: activestudent.batch,
+    studentpin: activestudent.pin,
+    subjectname: activesubject,
+    chaptername: newchapval,
+    dppprogress: "",
+    prabalprogress: "",
+    parikshitprogress: "",
+    pyqsprogress: "",
+    dppphoto: "[]",
+    prabalphoto: "[]",
+    parikshitphoto: "[]",
+    pyqsphoto: "[]"
+  }
+  recordsdata.push(newRecord)
+  cancelchapterinput()
+  showprogresspage(encodeURIComponent(newchapval))
+
   try {
     let postres = await fetch(workerbase + "/api/savechapter", {
       method: "POST",
@@ -645,16 +684,13 @@ async function addnewchapter() {
       })
     })
     let resdata = await postres.json()
-    if (resdata.success) {
-      cancelchapterinput()
-      if (resdata.records && resdata.records.length > 0) {
-        recordsdata.push(...resdata.records)
-      }
-      showprogresspage(encodeURIComponent(newchapval))
-      syncstudentdata()
+    if (resdata.success && resdata.records && resdata.records.length > 0) {
+      newRecord.id = resdata.records[0].id
     }
   } catch (err) {
-    alert("error adding chapter")
+    recordsdata = recordsdata.filter(r => r !== newRecord)
+    showchapterspage(encodeURIComponent(activesubject))
+    alert("Error saving chapter to server")
   }
 }
 
@@ -925,27 +961,26 @@ async function wipecurrentchapter() {
   if (!confirm("delete chapter " + activechapter + "?")) return
 
   let targetrow = recordsdata.find(entry => entry.subjectname === activesubject && entry.chaptername === activechapter)
-  if (!targetrow || !targetrow.id) return
+  let chapToDelete = activechapter
+  let targetId = targetrow ? targetrow.id : null
+
+  // Optimistic UI: Instantly remove chapter and transition back to chapters view in 0ms
+  activechapter = ""
+  recordsdata = recordsdata.filter(entry => !(entry.subjectname === activesubject && entry.chaptername === chapToDelete))
+  showchapterspage(encodeURIComponent(activesubject))
+
+  if (!targetId || String(targetId).startsWith("temp_")) return
 
   try {
-    let delres = await fetch(workerbase + "/api/delchapter", {
+    await fetch(workerbase + "/api/delchapter", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        id: targetrow.id,
+        id: targetId,
         studentpin: activestudent.pin
       })
     })
-    let resdata = await delres.json()
-    if (resdata.success) {
-      let chapToDelete = activechapter
-      activechapter = ""
-      recordsdata = recordsdata.filter(entry => !(entry.subjectname === activesubject && entry.chaptername === chapToDelete))
-      showchapterspage(encodeURIComponent(activesubject))
-    }
-  } catch (err) {
-    alert("error deleting chapter")
-  }
+  } catch (err) { }
 }
 
 function backtosubjectsview() {
