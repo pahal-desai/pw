@@ -36,6 +36,27 @@ function parsephotolist(raw) {
   return [trimmed]
 }
 
+function initsession() {
+  let saved = localStorage.getItem("pw_student_session")
+  if (saved) {
+    try {
+      let creds = JSON.parse(saved)
+      if (creds && creds.name && creds.batch && creds.pin) {
+        getnode("pupilname").value = creds.name
+        getnode("pupilbatch").value = creds.batch
+        getnode("pupilpin").value = creds.pin
+        handleauthsubmit(true)
+      }
+    } catch (e) { }
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initsession)
+} else {
+  initsession()
+}
+
 function switchauthmode(targetmode) {
   authmode = targetmode
   let loginbtn = getnode("tabloginbtn")
@@ -68,14 +89,14 @@ function switchauthmode(targetmode) {
   }
 }
 
-async function handleauthsubmit() {
+async function handleauthsubmit(isAutoLogin = false) {
   let nameinput = getnode("pupilname").value.trim()
   let batchinput = getnode("pupilbatch").value.trim()
   let pininput = getnode("pupilpin").value.trim()
   let noticemsg = getnode("authstatus")
 
   if (!nameinput || !batchinput || !pininput) {
-    noticemsg.innerText = "please fill name, batch, and pin"
+    if (!isAutoLogin) noticemsg.innerText = "please fill name, batch, and pin"
     return
   }
 
@@ -103,7 +124,7 @@ async function handleauthsubmit() {
       return
     }
   } else {
-    noticemsg.innerText = "verifying login..."
+    if (!isAutoLogin) noticemsg.innerText = "verifying login..."
   }
 
   try {
@@ -124,6 +145,10 @@ async function handleauthsubmit() {
         batch: batchinput,
         pin: pininput
       }
+      try {
+        localStorage.setItem("pw_student_session", JSON.stringify(activestudent))
+      } catch (e) { }
+
       recordsdata = logintxt.records || []
       studenttasks = logintxt.tasks || []
       studentsubmissions = logintxt.submissions || []
@@ -134,10 +159,14 @@ async function handleauthsubmit() {
       renderstudenttasks()
       showsubjectspage()
     } else {
-      noticemsg.innerText = logintxt.error || "login failed"
+      if (isAutoLogin) {
+        localStorage.removeItem("pw_student_session")
+      } else {
+        noticemsg.innerText = logintxt.error || "login failed"
+      }
     }
   } catch (err) {
-    noticemsg.innerText = "connection error during login"
+    if (!isAutoLogin) noticemsg.innerText = "connection error during login"
   }
 }
 
@@ -151,6 +180,9 @@ function dologout() {
   activetaskid = null
   tasksubmissionphotos = []
   currentphotos = { dpp: [], prabal: [], parikshit: [], pyqs: [] }
+  try {
+    localStorage.removeItem("pw_student_session")
+  } catch (e) { }
   getnode("pupilpin").value = ""
   renderstudenttasks()
   getnode("subjectsview").classList.add("hidden")
@@ -237,7 +269,7 @@ function renderstudenttasks() {
       if (subPhotos.length > 0) {
         thumbsHtml = "<div class='photogallery' style='margin-top:6px'>" + subPhotos.map((src, idx) => `
           <div class="photothumbwrap">
-            <img src="${src}" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)">
+            <img src="${src}" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)" loading="lazy">
           </div>
         `).join("") + "</div>"
       }
@@ -337,10 +369,8 @@ async function handletaskphotosupload(files) {
   statusNode.innerText = "Processing " + fileList.length + " image(s)..."
 
   try {
-    for (let f of fileList) {
-      let dataUrl = await compressimage(f, 1200, 0.75)
-      tasksubmissionphotos.push(dataUrl)
-    }
+    let compressedList = await Promise.all(fileList.map(f => compressimage(f, 960, 0.70)))
+    tasksubmissionphotos.push(...compressedList)
     statusNode.innerText = ""
     updatetasksubmissiongallery()
   } catch (err) {
@@ -377,7 +407,7 @@ function updatetasksubmissiongallery() {
   tasksubmissionphotos.forEach((src, idx) => {
     html += `
       <div class="photothumbwrap">
-        <img src="${src}" alt="Submission photo ${idx + 1}" onclick="openphotolightbox(this.src)">
+        <img src="${src}" alt="Submission photo ${idx + 1}" onclick="openphotolightbox(this.src)" loading="lazy">
         <button type="button" class="thumbdelbtn" onclick="removetasksubmissionphoto(${idx})" title="Remove photo">&times;</button>
       </div>
     `
@@ -436,7 +466,7 @@ async function submittaskproof() {
       renderstudenttasks()
       setTimeout(() => {
         closesubmittaskmodal()
-      }, 1000)
+      }, 800)
     } else {
       statusNode.style.color = "#ff6b6b"
       statusNode.innerText = resJson.error || "Failed to submit task proof."
@@ -481,7 +511,7 @@ function filtersubjects() {
   for (let eachsub of filteredsubjects) {
     let chapcount = recordsdata.filter(entry => entry.subjectname === eachsub && entry.chaptername && entry.chaptername.trim() !== "").length
     let countlabel = chapcount === 1 ? "1 chapter" : chapcount + " chapters"
-    cardshtml += "<div class='cardbtn' onclick='showchapterspage(\"" + eachsub + "\")'>"
+    cardshtml += "<div class='cardbtn' onclick='showchapterspage(\"" + encodeURIComponent(eachsub) + "\")'>"
     cardshtml += "<div class='cardinfo'><div class='cardtitle'>" + eachsub + "</div><div class='cardmeta'>click to view chapters</div></div>"
     cardshtml += "<span class='badge cardbadge'>" + countlabel + " &rarr;</span>"
     cardshtml += "</div>"
@@ -518,16 +548,19 @@ async function addnewsubject() {
     let resdata = await postres.json()
     if (resdata.success) {
       cancelsubjectinput()
-      await syncstudentdata()
+      if (resdata.records && resdata.records.length > 0) {
+        recordsdata.push(...resdata.records)
+      }
       showsubjectspage()
+      syncstudentdata()
     }
   } catch (err) {
     alert("error adding subject")
   }
 }
 
-function showchapterspage(subname) {
-  activesubject = subname
+function showchapterspage(subnameEnc) {
+  activesubject = decodeURIComponent(subnameEnc)
   getnode("subjectsview").classList.add("hidden")
   getnode("progressview").classList.add("hidden")
   getnode("chaptersview").classList.remove("hidden")
@@ -572,7 +605,7 @@ function filterchapters() {
     let targetrow = recordsdata.find(entry => entry.subjectname === activesubject && entry.chaptername === eachchap)
     let dpphint = targetrow && targetrow.dppprogress ? "DPP: " + targetrow.dppprogress : "progress not set"
 
-    cardshtml += "<div class='cardbtn' onclick='showprogresspage(\"" + eachchap + "\")'>"
+    cardshtml += "<div class='cardbtn' onclick='showprogresspage(\"" + encodeURIComponent(eachchap) + "\")'>"
     cardshtml += "<div class='cardinfo'><div class='cardtitle'>" + eachchap + "</div><div class='cardmeta'>" + dpphint + "</div></div>"
     cardshtml += "<span class='badge cardbadge'>view / edit &rarr;</span>"
     cardshtml += "</div>"
@@ -614,16 +647,19 @@ async function addnewchapter() {
     let resdata = await postres.json()
     if (resdata.success) {
       cancelchapterinput()
-      await syncstudentdata()
-      showprogresspage(newchapval)
+      if (resdata.records && resdata.records.length > 0) {
+        recordsdata.push(...resdata.records)
+      }
+      showprogresspage(encodeURIComponent(newchapval))
+      syncstudentdata()
     }
   } catch (err) {
     alert("error adding chapter")
   }
 }
 
-function showprogresspage(chapname) {
-  activechapter = chapname
+function showprogresspage(chapnameEnc) {
+  activechapter = decodeURIComponent(chapnameEnc)
   getnode("subjectsview").classList.add("hidden")
   getnode("chaptersview").classList.add("hidden")
   getnode("progressview").classList.remove("hidden")
@@ -675,10 +711,8 @@ async function handlephotoupload(key, files) {
   savemsg.innerText = "Processing " + fileList.length + " image(s)..."
 
   try {
-    for (let f of fileList) {
-      let dataUrl = await compressimage(f, 1200, 0.75)
-      currentphotos[key].push(dataUrl)
-    }
+    let compressedList = await Promise.all(fileList.map(f => compressimage(f, 960, 0.70)))
+    currentphotos[key].push(...compressedList)
     updatephotoui(key)
     let grp = getnode(key + "group")
     if (grp) grp.classList.remove("photomissing")
@@ -729,7 +763,7 @@ function updatephotoui(key) {
     photos.forEach((src, idx) => {
       html += `
         <div class="photothumbwrap">
-          <img src="${src}" alt="${key} photo ${idx + 1}" onclick="openphotolightbox(this.src)">
+          <img src="${src}" alt="${key} photo ${idx + 1}" onclick="openphotolightbox(this.src)" loading="lazy">
           <button type="button" class="thumbdelbtn" onclick="removephoto('${key}', ${idx})" title="Remove photo">&times;</button>
         </div>
       `
@@ -738,7 +772,7 @@ function updatephotoui(key) {
   }
 }
 
-function compressimage(file, maxDimension = 1200, quality = 0.75) {
+function compressimage(file, maxDimension = 960, quality = 0.70) {
   return new Promise((resolve, reject) => {
     let reader = new FileReader()
     reader.onerror = () => reject(new Error("Failed to read file"))
@@ -834,7 +868,7 @@ async function savechapterprogress() {
   }
 
   savemsg.style.color = "#58a6ff"
-  savemsg.innerText = "syncing with database..."
+  savemsg.innerText = "saving progress..."
 
   let targetrow = recordsdata.find(entry => entry.subjectname === activesubject && entry.chaptername === activechapter)
 
@@ -862,8 +896,21 @@ async function savechapterprogress() {
     let resdata = await saveres.json()
     if (resdata.success) {
       savemsg.style.color = "#3fb950"
-      savemsg.innerText = "Progress and photos synced with database!"
-      await syncstudentdata()
+      savemsg.innerText = "Progress and photos saved!"
+
+      // Instant optimistic local update without waiting for full sync fetch
+      if (targetrow) {
+        targetrow.dppprogress = dppbox
+        targetrow.prabalprogress = prabalbox
+        targetrow.parikshitprogress = parikshitbox
+        targetrow.pyqsprogress = pyqbox
+        targetrow.dppphoto = JSON.stringify(currentphotos.dpp)
+        targetrow.prabalphoto = JSON.stringify(currentphotos.prabal)
+        targetrow.parikshitphoto = JSON.stringify(currentphotos.parikshit)
+        targetrow.pyqsphoto = JSON.stringify(currentphotos.pyqs)
+      } else if (resdata.records && resdata.records.length > 0) {
+        recordsdata.push(resdata.records[0])
+      }
     } else {
       savemsg.style.color = "#ff6b6b"
       savemsg.innerText = resdata.error || "failed to save"
@@ -891,9 +938,10 @@ async function wipecurrentchapter() {
     })
     let resdata = await delres.json()
     if (resdata.success) {
+      let chapToDelete = activechapter
       activechapter = ""
-      await syncstudentdata()
-      showchapterspage(activesubject)
+      recordsdata = recordsdata.filter(entry => !(entry.subjectname === activesubject && entry.chaptername === chapToDelete))
+      showchapterspage(encodeURIComponent(activesubject))
     }
   } catch (err) {
     alert("error deleting chapter")
@@ -905,5 +953,5 @@ function backtosubjectsview() {
 }
 
 function backtochaptersview() {
-  showchapterspage(activesubject)
+  showchapterspage(encodeURIComponent(activesubject))
 }

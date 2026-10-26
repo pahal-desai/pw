@@ -631,7 +631,7 @@ function renderadminphoto(containerId, photoData, label) {
       <div class="adminphotogrid">
   `
   photos.forEach((src, idx) => {
-    html += `<img src="${src}" class="adminphotothumbchip" alt="${label} ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to enlarge">`
+    html += `<img src="${src}" class="adminphotothumbchip" alt="${label} ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to enlarge" loading="lazy">`
   })
   html += `
       </div>
@@ -891,37 +891,7 @@ function rendertasksmodalcontent() {
   listcontainer.innerHTML = html
 }
 
-async function openviewsubmissionsmodal(taskId) {
-  let task = alltasks.find(t => String(t.id) === String(taskId))
-  if (!task) return
-
-  let modal = findtag("tasksubmissionsmodal")
-  findtag("submissionsmodaltasktitle").innerText = task.tasktitle
-  let targetText = task.targettype === "student"
-    ? "Target: Student " + task.targetstudent + " (" + task.targetbatch + ")"
-    : "Target: Batch " + task.targetbatch
-  findtag("submissionsmodaltasktarget").innerText = targetText
-
-  let listContainer = findtag("tasksubmissionslist")
-  listContainer.innerHTML = "<div class='subtext' style='padding:16px 0;text-align:center'>Loading submissions...</div>"
-  modal.classList.remove("hidden")
-
-  // Fetch fresh submissions from server
-  try {
-    let res = await fetch(workerurl + "/api/gettasksubmissions", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ taskid: taskId })
-    })
-    let resJson = await res.json()
-    if (resJson.success) {
-      allsubmissions = allsubmissions.filter(s => String(s.taskid) !== String(taskId)).concat(resJson.submissions || [])
-    }
-  } catch (e) { }
-
-  let taskSubs = (allsubmissions || []).filter(s => String(s.taskid) === String(taskId))
-  findtag("submissionsmodalcount").innerText = taskSubs.length + (taskSubs.length === 1 ? " submission" : " submissions")
-
+function renderSubmissionsList(taskSubs, listContainer) {
   if (taskSubs.length === 0) {
     listContainer.innerHTML = "<div class='subtext' style='padding:24px 0;text-align:center'>No student submissions received for this task yet.</div>"
     return
@@ -939,7 +909,7 @@ async function openviewsubmissionsmodal(taskId) {
         <div style="margin-top:6px">
           <span style="font-size:11px;color:#888888;display:block;margin-bottom:4px">Submitted Photos (${photos.length}):</span>
           <div class="adminphotogrid">
-            ${photos.map((src, idx) => `<img src="${src}" class="adminphotothumbchip" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to view photo ${idx + 1}">`).join("")}
+            ${photos.map((src, idx) => `<img src="${src}" class="adminphotothumbchip" alt="Proof ${idx + 1}" onclick="openphotolightbox(this.src)" title="Click to view photo ${idx + 1}" loading="lazy">`).join("")}
           </div>
         </div>
       `
@@ -957,6 +927,42 @@ async function openviewsubmissionsmodal(taskId) {
     `
   }
   listContainer.innerHTML = html
+}
+
+async function openviewsubmissionsmodal(taskId) {
+  let task = alltasks.find(t => String(t.id) === String(taskId))
+  if (!task) return
+
+  let modal = findtag("tasksubmissionsmodal")
+  findtag("submissionsmodaltasktitle").innerText = task.tasktitle
+  let targetText = task.targettype === "student"
+    ? "Target: Student " + task.targetstudent + " (" + task.targetbatch + ")"
+    : "Target: Batch " + task.targetbatch
+  findtag("submissionsmodaltasktarget").innerText = targetText
+
+  let listContainer = findtag("tasksubmissionslist")
+
+  // Instant render from cache with zero wait
+  let cachedSubs = (allsubmissions || []).filter(s => String(s.taskid) === String(taskId))
+  findtag("submissionsmodalcount").innerText = cachedSubs.length + (cachedSubs.length === 1 ? " submission" : " submissions")
+  renderSubmissionsList(cachedSubs, listContainer)
+  modal.classList.remove("hidden")
+
+  // Quietly background sync for any recent submissions
+  try {
+    let res = await fetch(workerurl + "/api/gettasksubmissions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ taskid: taskId })
+    })
+    let resJson = await res.json()
+    if (resJson.success && Array.isArray(resJson.submissions)) {
+      allsubmissions = allsubmissions.filter(s => String(s.taskid) !== String(taskId)).concat(resJson.submissions)
+      let freshSubs = allsubmissions.filter(s => String(s.taskid) === String(taskId))
+      findtag("submissionsmodalcount").innerText = freshSubs.length + (freshSubs.length === 1 ? " submission" : " submissions")
+      renderSubmissionsList(freshSubs, listContainer)
+    }
+  } catch (e) { }
 }
 
 function closeviewsubmissionsmodal() {

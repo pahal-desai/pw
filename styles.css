@@ -19,6 +19,11 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+button, input, select, textarea, a, .cardbtn, .actionpillbtn, .btn {
+  touch-action: manipulation;
 }
 
 .appcontainer {
@@ -962,14 +967,15 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 99999;
   padding: 16px;
-  animation: fadeIn 0.18s ease;
+  animation: fadeIn 0.12s ease-out;
+  transform: translateZ(0);
 }
 
 .modalbox {
@@ -982,8 +988,10 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
-  animation: modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalSlideUp 0.14s ease-out;
   overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
 
 .modalheader {
